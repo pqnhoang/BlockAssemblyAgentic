@@ -39,7 +39,7 @@ def main():
     ########################## entities ##########################
     # Add ground plane
     plane = scene.add_entity(gs.morphs.Plane())
-    
+
     # Load block positions and sizes from state file
 
     # Add entities to the scene using the block dictionary
@@ -84,10 +84,10 @@ def main():
         with ThreadPoolExecutor() as executor:
             # Start simulation in a separate thread
             future = executor.submit(run_sim, scene, args.vis, cam, object_name)
-            
+
             # Start viewer in the main thread
             scene.viewer.start()
-            
+
             # Wait for simulation to complete
             paths = future.result()
     else:
@@ -97,18 +97,18 @@ def main():
     # Evaluate semantic recognizability if requested
     if args.evaluate and paths:
         try:
-            
+
             print("\nEvaluating semantic recognizability...")
             evaluator = SemanticRecognizability()
             result = evaluator.evaluate_single(paths["image_path"], state["object_name"])
-            
+
             print("\nSemantic Recognizability Results:")
             print(f"Top-1 Accuracy: {100 if result['top_1_accuracy'] else 0}%")
             print(f"Average Rank: {result['average_rank']}")
             print(f"Relative Rank: {result['relative_rank']:.1f}%")
             print("\nFull Analysis:")
             print(result['full_response'])
-            
+
         except Exception as e:
             print(f"\nError evaluating semantic recognizability: {str(e)}")
             print(f"Paths returned from simulation: {paths}")  # Debug info
@@ -116,35 +116,35 @@ def main():
 def extract_last_frame(video_path: str, output_path: str) -> None:
     """
     Extract the last frame from a video file and save it as an image.
-    
+
     Args:
         video_path (str): Path to the video file
         output_path (str): Path where to save the extracted frame
     """
     # Open the video file
     cap = cv2.VideoCapture(video_path)
-    
+
     # Check if video opened successfully
     if not cap.isOpened():
         print(f"Error: Could not open video file {video_path}")
         return
-    
+
     # Get total number of frames
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    
+
     # Set frame position to last frame
     cap.set(cv2.CAP_PROP_POS_FRAMES, total_frames - 1)
-    
+
     # Read the last frame
     ret, frame = cap.read()
-    
+
     if ret:
         # Save the frame as image
         cv2.imwrite(output_path, frame)
         print(f"Last frame saved as {output_path}")
     else:
         print("Error: Could not read the last frame")
-    
+
     # Release video capture object
     cap.release()
 
@@ -153,30 +153,30 @@ def run_sim(scene, enable_vis, cam, object_name):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     video_filename = f'videos/{object_name}_{timestamp}.mp4'
     image_filename = f'images/{object_name}_{timestamp}.jpg'
-    
+
     # Create necessary directories if they don't exist
     os.makedirs('videos', exist_ok=True)
     os.makedirs('images', exist_ok=True)
-    
+
     # Run simulation
     cam.start_recording()
     for i in range(120):
         scene.step()
         cam.render()
-    
+
     # Stop recording and save video
     cam.stop_recording(save_to_filename=video_filename, fps=60)
     print(f"Video saved as {video_filename}")
-    
+
     # Wait a moment to ensure video is fully written
     time.sleep(1)
-    
+
     # Extract and save the last frame from the video
     extract_last_frame(video_filename, image_filename)
 
     if enable_vis:
         scene.viewer.stop()
-    
+
     # Return paths for potential further processing
     return {
         "video_path": video_filename,
@@ -187,10 +187,10 @@ def run_sim(scene, enable_vis, cam, object_name):
 def load_simulated_blocks(json_path: str) -> dict:
     """
     Load and convert simulated blocks from JSON file to a dictionary.
-    
+
     Args:
         json_path (str): Path to the simulated blocks JSON file
-        
+
     Returns:
         dict: Dictionary containing block information with the following structure:
             {
