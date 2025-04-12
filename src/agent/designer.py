@@ -23,8 +23,7 @@ class Designer:
         self.output_format = designer_prompt.OUTPUT_FORMAT
     
     def __call__(self, query: str, previous_plan: str, observation: str, **kwargs) -> Any:
-        designer_prompt = self.designer_prompt.PLAN.format(user_query=query, examples=self.example_designer, return_format=self.output_format)
-
+        designer_prompt = self.designer_prompt.PLAN.format(user_query=query, examples=self.example_designer, return_format=self.output_format, planning = previous_plan, observation = observation)
         input_message_planner = [
             {"role": "system", "content": self.llm.system_prompt},
             {"role": "user", "content": designer_prompt},
@@ -44,4 +43,4 @@ class Designer:
     
 if __name__ == "__main__":
     designer = Designer(designer_prompt_v1, OpenAILLM(api_file="api_key.txt"))
-    print(designer("design a chair", "", ""))
+    print(designer("Design U letter", "No feedback available.", "No observation available."))

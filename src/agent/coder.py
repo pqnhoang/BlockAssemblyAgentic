@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
 import torch
 import base64
 from PIL import Image
-from .llm import OpenAILLM
+from llm import OpenAILLM
 from prompt import coder_prompt_v1
 
 

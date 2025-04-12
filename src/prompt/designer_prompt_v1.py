@@ -1,6 +1,16 @@
 PLAN = """
-You are an AI assistant designed to assist with the design-for-assembly tasks by providing the valid instructions (subtasks) step by step to write a plan for how to assemble a object using a set of blocks. 
+You are an AI assistant designed to assist with the design-for-assembly tasks by providing the valid instructions (subtasks) step by step to write a plan for how to assemble the target object using a set of blocks. 
 Use the block as needed while respecting the constraints.
+
+###User Query:
+{user_query}
+
+###Previous Plan:
+{planning}
+
+###Observation:
+{observation}
+
 ###Setting:
     1. The task design-for-asembly task involves analyzing the target object and the set of blocks, write a plan for how to assemble the object using the blocks.
     2. The process consist of several steps, including general describe the target object, choose which blocks to represent part of the object , describe the plan for assembling the object, and then decide the position  the plan for assembling the object step by step.
@@ -25,25 +35,22 @@ Skill 5: Describe the object in a concise, qualitative way that captures its ess
 
 --- 
 Example 1: "Generate a desgin plan for a one leg table"
-Step 1: Get information about available blocks
-Step 2: Describe a one leg table in minimalistic style: 
-    - e.g "upward rotation cylinder for representing the leg, a flat square block for representing the table top"
-Step 3: Choose the most suitable blocks for each part of the object
-Step 4: Looping place the blocks and check the stability until the structure is stable:
-    - place the leg at (x,y) with yaw angle (z), check the stability : True so going to next step else try to adjust the position of the blocks
-    - place the table top on top of the leg at (x,y) with yaw angle (z), check the stability : True so stop and output the detail position of each block and the yaw angle
+Step 1: Get blocks information.
+Step 2: Choose the appropriate block for each part of the object.
+Step 3: Place each block follow the order of the plan. Each time you place a block, check the stability of the structure and feedback to the user.
+Step 4: Output the result
 ---
 Example 2: "Generate a desgin plan for a sofa"
-Step 1: Get information about available blocks
-Step 2: Describe a sofa in minimalistic style: 
-    - e.g "a flat square block for representing the sofa backrest , a flat square block for representing the sofa seat, two upward cylinder block for representing the sofa armrest"
-Step 3: Choose the most suitable blocks for each part of the object
-Step 4: Looping place the blocks and check the stability until the structure is stable:
-    - place the backrest at (x,y) with yaw angle (z) , check the stability : True so going to next step else try to adjust the position of the blocks
-    - place the seat at (x,y) with yaw angle (z) , check the stability : True so going to next step else try to adjust the position of the blocks
-    - place the left armrest at (x,y) with yaw angle (z) , check the stability : True so going to next step else try to adjust the position of the blocks
-    - place the right armrest at (x,y) with yaw angle (z) , check the stability : True so stop and output the detail position of each block and the yaw angle
+Step 1: Get blocks information.
+Step 2: Choose the appropriate block for each part of the object.
+Step 3: Place each block follow the order of the plan. Each time you place a block, check the stability of the structure and feedback to the user.
+Step 4: Output the result
 ---
+###Required Output Format:
+{return_format}
+
+###Example Answer:
+{examples}
 """
 
 OUTPUT_FORMAT = '''
@@ -62,62 +69,19 @@ Answer:
 ```json
 [
     {"id": 1, "instruction": "get information about available blocks", "probability": 0.9},
-    {"id": 2, "instruction": "get the general description of the object", "probability": 0.8},
-    {"id": 3, "instruction": "place the leg at (x,y) with yaw angle (z)", "probability": 0.6},
-    {"id": 4, "instruction": "check the stability of the structure", "probability": 0.5},
-    {"id": 5, "instruction": "adjust the position of the blocks", "probability": 0.4},
-    {"id": 6, "instruction": "repeat the step 3 and 4 until the structure is stable", "probability": 0.3},
-    {"id": 7, "instruction": "output the detail position of each block and the yaw angle", "probability": 0.2},
+    {"id": 2, "instruction": "get the general description of the one leg table", "probability": 0.8},
+    {"id": 3, "instruction": "choose flat cylinder block to represent the table top", "probability": 0.7},
+    {"id": 4, "instruction": "choose thin cuboid to represent the table leg", "probability": 0.7},
+    {"id": 5, "instruction": "place the leg at (0, 0) with yaw angle 0", "probability": 0.6},
+    {"id": 6, "instruction": "check the stability of the leg placement", "probability": 0.5},
+    {"id": 7, "instruction": "if stable, place the table top at (0, 0.5) with yaw angle 0", "probability": 0.4},
+    {"id": 8, "instruction": "check the stability of the table structure", "probability": 0.3},
+    {"id": 9, "instruction": "output the detail position of each block and the yaw angle", "probability": 0.2}
 ]
-```  
+```
 '''
 
 EXAMPLE = """
-E.g., 
-Question: "Grasp the handle of the mug."
-Plan:
-Step 1: Find mug
-Step 2: Find handle of the mug
-Step 3: Calculate the grasp rectangle for the detected mug handle
-
-E.g.,
-Question: "Grasp the apple on the plate."
-Plan:
-Step 1: Find apples
-Step 2: Find plate
-Step 3: Check each of the apples if they are on the plate, return the one that is on the plate
-Step 4: Calculate the grasp rectangle for the detected apple on the plate
-
-E.g.,
-Question: "Give me the knife in safety."
-Plan:
-Step 1: Find knife
-Step 2: In order to handover safety, find the blade of the knife to grasp, so the user could grasp the handle safely
-Step 3: Calculate the grasp rectangle for the detected blade of the knife
-
-E.g.,
-Question: "Grasp the top left of an object."
-Plan:
-Step 1: Find objects
-Step 2: Sort objects by position in vertical and horizontal directions, return the top left object
-Step 3: Calculate the grasp rectangle for the detected top left object
-
-E.g.,
-Question: "Grasp the object that is closest to the camera."
-Plan:
-Step 1: Find objects
-Step 2: Sort objects by distance from the camera, return the closest object
-Step 3: Calculate the grasp rectangle for the detected closest object
-
----
-Example 3: "Give me the knife in safety."
-
-Step 1: Find the knife.  
-   - Detect the knife in the image.
-Step 2: Identify the blade of the knife for safe handling.  
-   - To ensure safety, locate the blade of the knife, as this is the part to grasp, allowing the user to safely hold the handle.
-Step 3: Calculate the grasp pose for the knife blade.  
-   - Calculate the grasp pose for the detected knife blade to ensure a safe handover.
 """
 
 

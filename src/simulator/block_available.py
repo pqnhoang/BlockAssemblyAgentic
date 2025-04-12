@@ -6,6 +6,10 @@ import json
 import os
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+import os
+from pathlib import Path
+
+from semantic_recog import SemanticRecognizability
 
 
 def main():

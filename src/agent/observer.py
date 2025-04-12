@@ -5,8 +5,8 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
 import torch
 import base64
 from PIL import Image
-from .llm import OpenAILLM
-from prompt import observer_prompt
+from llm import OpenAILLM
+from prompt import observer_prompt_v1
 from pathlib import Path
 
 def encode_image(image_path):
@@ -14,7 +14,7 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 class Observer:
-    def __init__(self, observer_prompt: observer_prompt, llm: OpenAILLM, model_name="gpt-4o", max_tokens=1000):
+    def __init__(self, observer_prompt: observer_prompt_v1, llm: OpenAILLM, model_name="gpt-4o", max_tokens=1000):
         super().__init__()
         self.model_name = model_name
         self.max_tokens = max_tokens
@@ -29,7 +29,7 @@ class Observer:
             base64_image = encode_image(image_path)
             
         elif isinstance(execute_results, Path):
-            observer_prompt1 = observer_prompt.OBSERVER.format(results=None)
+            observer_prompt1 = observer_prompt_v1.OBSERVER.format(results=None)
             base64_image = encode_image('imgs/grasp_pose_visualization.png')
 
         content_message = [
