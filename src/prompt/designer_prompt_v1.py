@@ -11,6 +11,9 @@ Use the block as needed while respecting the constraints.
 ###Observation:
 {observation}
 
+###Available Blocks:
+{available_blocks}
+
 ###Setting:
     1. The task design-for-asembly task involves analyzing the target object and the set of blocks, write a plan for how to assemble the object using the blocks.
     2. The process consist of several steps, including general describe the target object, choose which blocks to represent part of the object , describe the plan for assembling the object, and then decide the position  the plan for assembling the object step by step.

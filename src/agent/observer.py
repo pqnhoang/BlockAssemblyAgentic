@@ -1,12 +1,17 @@
 import os
-import time
+import sys
+
+# Thêm thư mục gốc của dự án vào sys.path
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(BASE_PATH)
+
 import matplotlib.pyplot as plt
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
 import torch
 import base64
 from PIL import Image
-from llm import OpenAILLM
-from prompt import observer_prompt_v1
+from src.agent.llm import OpenAILLM
+from src.prompt import observer_prompt_v1
 from pathlib import Path
 
 def encode_image(image_path):

@@ -35,13 +35,13 @@ class OpenAILLM:
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         pass
 # test the llm
-if __name__ == "__main__":
-    llm = OpenAILLM(api_file="api_key.txt")
-    response = llm.client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": llm.system_prompt},
-            {"role": "user", "content": "What is the capital of France?"}
-        ]
-    )
-    print(response.choices[0].message.content)
+# if __name__ == "__main__":
+#     llm = OpenAILLM(api_file="api_key.txt")
+#     response = llm.client.chat.completions.create(
+#         model="gpt-4o",
+#         messages=[
+#             {"role": "system", "content": llm.system_prompt},
+#             {"role": "user", "content": "What is the capital of France?"}
+#         ]
+#     )
+#     print(response.choices[0].message.content)

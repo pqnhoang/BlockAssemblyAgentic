@@ -4,7 +4,7 @@ CODE = '''
 Ensure your code follow the plan. 
 
 ** Important instructions **:
-1. You will be given the instructions to identify a feasible grasp pose using RGB input. Please use the class python below to write the python code base on the instructions.
+1. You will be given the instructions to place each block, assembly the target object. Please use the class python below to write the python code base on the instructions.
 2. Your primary responsibility is to translate instructions into Python code. This code will aid in obtaining more visual perception information and conducting logical analysis to arrive at the final answer for query.
 3. Image patch is a crop of an image centered around a particular object.
 4. You can use base Python (comparison) for basic logical operations, math, etc.
