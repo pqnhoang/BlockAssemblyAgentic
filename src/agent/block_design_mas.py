@@ -12,12 +12,14 @@ import numpy as np
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
 import base64
 from PIL import Image
-from structure import Structure
+from toolset import IsometricImage
 from src.agent.designer import Designer
 from src.agent.observer import Observer
 from src.agent.coder import Coder
 from src.prompt import coder_prompt_v2, designer_prompt_v2, observer_prompt_v1
-
+import torch
+import json
+from src.utils.utils import print_dict, slugify
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
@@ -36,8 +38,13 @@ class BlockDesignMAS:
         self.code = None
         self.max_round = max_round
 
-    def query(self, query: str, image_path: Path) -> Any:
-        image = Image.open(image_path)
+    def query(self, query: str, feed_back_image: Image.Image | torch.Tensor | np.ndarray | None) -> Any:
+        object_name = slugify(query)
+
+        if feed_back_image is None:
+            feed_back_image = Image.open(os.path.join(BASE_PATH, "imgs/block.png"))
+        else:
+            feed_back_image = feed_back_image
         for idx in range(self.max_round):
             print(10*'=',f'Round {idx}',10*'=')
             ## Planner
@@ -53,16 +60,18 @@ class BlockDesignMAS:
             print("Executing code...")
             exec(self.code, globals())
             try:
-                out = execute_command(image)
+                out = execute_command(object_name, feed_back_image)
             except Exception as e:
                 out = str(e)
                 print("Error:", out)
             
             if isinstance(out, List):
-                out = visualize_grasp_pose(np.array(image), out)
-                print("Grasp Pose Visualization saved at:", out)
+                with open(f'final_results/positions/{object_name}_result.json', 'w') as f:
+                    json.dump(out, f, indent=4)
+                out_str = print_dict(out)
+                print(f"Output saved to {object_name}_result.json")
 
-            self.observation = self.observer(out, image_path=image_path)
+            self.observation = self.observer(out)
             print(5*'-',"Observation", 5*'-', '\n' + self.observation)
         
         return out

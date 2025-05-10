@@ -69,8 +69,24 @@ def convert_numpy_to_list(obj):
 
 
 def save_to_json(data, file_path):
-    with open(file_path, "w", encoding="utf-8") as file:
-        json.dump(data, file, default=convert_numpy_to_list, indent=4)
+    # Tạo thư mục nếu chưa tồn tại
+    directory = os.path.dirname(file_path)
+    if directory and not os.path.exists(directory):
+        try:
+            os.makedirs(directory, exist_ok=True)
+            print(f"Created directory: {directory}")
+        except Exception as e:
+            print(f"Error creating directory {directory}: {e}")
+            raise
+    
+    # Tiến hành lưu file
+    try:
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(data, file, default=convert_numpy_to_list, indent=4)
+        print(f"Successfully saved data to {file_path}")
+    except Exception as e:
+        print(f"Error saving to {file_path}: {e}")
+        raise
 
 
 def markdown_json(data):
@@ -136,5 +152,46 @@ def get_last_json_as_dict(gpt_output):
         print("ERROR in code extraction")
         raise AssertionError("Terminating Process Early Because of bad JSON Response")
 
-def get_available_blocks():
-    pass
+def print_dict(dict_data):
+    """
+    Print information about furniture components from a dictionary list
+    in a structured and readable format.
+    
+    Args:
+        furniture_list: List of dictionaries containing furniture component information
+    """
+    if not dict_data:
+        print("Empty list!")
+        return
+        
+    for idx, item in enumerate(dict_data, 1):
+        print(f"\n{'='*50}")
+        print(f"COMPONENT {idx}: {item.get('name', 'No name')}")
+        print(f"{'='*50}")
+        
+        print(f"- Shape: {item.get('shape', 'N/A')}")
+        
+        # Print dimensions
+        dimensions = item.get('dimensions', {})
+        print("- Dimensions:")
+        for dim_name, dim_value in dimensions.items():
+            print(f"  + {dim_name}: {dim_value} m")
+        
+        # Print color
+        color = item.get('color', [])
+        if len(color) == 4:
+            print(f"- Color (RGBA): R={color[0]}, G={color[1]}, B={color[2]}, A={color[3]}")
+        else:
+            print(f"- Color: {color}")
+        
+        # Print position
+        position = item.get('position', {})
+        print("- Position:")
+        for pos_axis, pos_value in position.items():
+            print(f"  + {pos_axis}: {pos_value} m")
+        
+        # Print rotation
+        print(f"- Rotation (yaw): {item.get('yaw', 'N/A')} rad")
+        
+    print("\n" + "-"*50)
+    print(f"Total components: {len(dict_data)}")

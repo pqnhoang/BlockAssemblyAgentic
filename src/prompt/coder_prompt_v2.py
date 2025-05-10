@@ -4,150 +4,321 @@ CODE = '''
 ** Important instructions **:
 1. You will be given assembly instructions for building structures with blocks, cylinders, and other objects. Use the Structure class to implement these instructions.
 2. Your primary responsibility is to translate assembly plans into Python code that creates the specified structures.
-3. Follow the step-by-step plan precisely, implementing each action in the correct order.
-4. Write code that correctly positions objects, checks stability, and handles any required simulations.
+3. IsometricImage is a class that simulates the building of a structure, provide a function to create a block, get the structure image, check stability, simple query, llm query, describe object, make plan, order blocks, decide position and build scene.
+4. You can use base Python (comparison, math, etc.) for basic logical operations.
 
-## Structure Class API:
+Provided Python Functions/Class:
 
-```python
-class Structure:
+import math
+class IsometricImage:
     """
     A class for physics-based simulation of various objects.
+
+    Attributes
+    ----------
+    object_name : str
+            The name of the object to be built.
+        feed_back_image : array_like
+            An array-like of the cropped image taken from the original image.
+        available_blocks_path : str, optional
+            Path to the JSON file containing available blocks. If None, uses default path.
     
     Methods
     -------
-    create_cylinder(target_: str, x: float, y: float, z: float)
-        Creates a cylinder at the specified position
-    create_block(target_: str, x: float, y: float, z: float)
-        Creates a rectangular block at the specified position
-    create_soft_sphere(target_: str, x: float, y: float, z: float)
-        Creates a soft deformable sphere at the specified position
-    create_muscle(target_: str, x: float, y: float, z: float)
-        Creates a muscle object that can be actuated
-    get_structure_image()
-        Returns top and left view images of the current structure
-    check_collision(target_: str, x: float, y: float, z: float)
-        Checks for collisions at the specified position
-    check_stability(target_: str, x: float, y: float, z: float)
-        Checks stability of the structure
-    simple_query(question: str)
-        Returns the answer to a basic question about the structure
-    llm_query(question: str)
-        Returns a detailed answer about the structure using LLM
+    simple_query(question: str)->str
+        Returns the answer to a basic question asked about the image.
+    llm_query(question: str)->str
+        Returns the answer to a question asked about the image using the LLM model. Typical use when the question is complex, ambiguous, or requires external knowledge. 
+        Typically ask about the object properties, relationships between them. For example: Ask the color of the Kleenex package in the image.
+    describe_object(structure_dir: str, iter: int)->str
+        Describe the object in the image.
+    make_plan(description: str, structure_dir: str, iter: int)->str
+        Make a plan to assemble the object.
+    order_blocks(structure_dir: str, plan: str, iter: int)->str
+        Make a list of blocks to assemble the object.
+    decide_position(structure_dir: str, order: str, iter: int)->list[dict]
+        Decide the position of the blocks to assemble the object.
+    refine_structure(image: Image.Image, structure_dir: str, iter: int)->list[dict]
+        Refine the structure to make it stable.
+    make_structure(positions: list[dict])->None
+        Make the structure of the object in simulation follow the order and position.
+    get_structure_image()->Image.Image
+        Get the isometric image of the structure.
+    stability_check(blocks: list[dict])->list[bool, dict, dict, Image.Image, Image.Image]
+        Check the stability of the structure.
+    save_structure(structure_dir: str)->None
+        Save the structure of the object in simulation.
     """
+    def __init__(self, object_name: str, feed_back_image: Image.Image | torch.Tensor | np.ndarray | None, available_blocks_path= None):
+        """
+        Initialize a Structure class object by providing the object name, available blocks path and feed back image. Then we create a scene object to perform build-in functions.
+        Parameters
+        ----------
+        object_name : str
+            A string describing the object name to be created.
+        feed_back_image : array_like
+            An array-like of the cropped image taken from the original image.
+        available_blocks_path : str
+            The path to the JSON file containing available blocks.
+        """
+        self.object_name = slugify(object_name)
+        self.structure_dir = os.path.join(SAVE_DIR, self.object_name)
+
+        if feed_back_image is None:
+            feed_back_image = Image.open(os.path.join(BASE_PATH, "imgs/block.png"))
+        else:
+            feed_back_image = feed_back_image
+        
+        if isinstance(feed_back_image, Image.Image):
+            feed_back_image = torchvision.transforms.ToTensor()(feed_back_image)
+        elif isinstance(feed_back_image, np.ndarray):
+            feed_back_image = torch.tensor(feed_back_image).permute(2, 0, 1)
+        elif isinstance(feed_back_image, torch.Tensor) and feed_back_image.dtype == torch.uint8:
+            feed_back_image = feed_back_image / 255
+        
+        self.original_img = torchvision.transforms.ToPILImage()(feed_back_image)
+        self.feed_back_image = feed_back_image
+        # Load available blocks
+        if available_blocks_path is None:
+            available_blocks_path = os.path.join(BASE_PATH, "data/simulated_blocks.json")
+        available_blocks = load_from_json(available_blocks_path)
+        self.available_blocks = process_available_blocks(available_blocks)
+        self.blocks = None
+        self.positions = None
+        
+    def simple_query(self, question: str = None) -> str:
+        """Returns the answer to a basic question asked about the image. If no question is provided, returns the answer
+        to "What is this?". The questions are about basic perception, and are not meant to be used for complex reasoning
+        or external knowledge.
+        Parameters
+        -------
+        question : str
+            A string describing the question to be asked.
+
+        Examples
+        -------
+
+        >>> # How many leg does the giraffe have?
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     return giraffe.simple_query("How many leg does the giraffe have?")
+
+        >>> # What is the color of the tree leaf?
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     tree = IsometricImage(object_name="Tree", feed_back_image=None)
+        >>>     return tree.simple_query("What is the color of the tree leaf?")
+
+    def describe_object(self, structure_dir: str, iter: int)->str:
+        """
+        Describe the object in the image.
+        Parameters
+        ----------
+        structure_dir : str
+            The directory of the structure.
+        iter : int
+            The iteration of the description.
+        Returns
+        -------
+        description : str
+            The description of the object.
+        Examples
+        -------
+
+        >>> # Describe the object in the image.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     description = giraffe.describe_object(structure_dir="giraffe", iter=1)
+        >>>     return description
+        """
+
+        return self.describe_object(structure_dir, iter)
     
-    def create_cylinder(self, target_: str, x: float, y: float, z: float):
-        """Creates a cylinder object at the specified position.
-        
-        Examples
-        --------
-        >>> # Create a cylinder for a table leg
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("table", available_blocks, "table", 1, feed_back_image)
-        >>>     structure.create_cylinder("leg", 0.25, 0.1, 0.02)
-        >>>     return structure
+    def make_plan(self, description: str, structure_dir: str, iter: int)->str:
         """
-        
-    def create_block(self, target_: str, x: float, y: float, z: float):
-        """Creates a rectangular block at the specified position.
-        
+        Make a plan to assemble the object.
+        Parameters
+        ----------
+        description : str
+            The description of the object.
+        structure_dir : str
+            The directory of the structure.
+        iter : int
+            The iteration of the plan.
+        Returns
+        -------
+        plan : str
+            The plan of the object.
         Examples
-        --------
-        >>> # Create a block for the table top
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("table", available_blocks, "table", 1, feed_back_image)
-        >>>     structure.create_block("tabletop", 0.0, 0.0, 0.5)
-        >>>     return structure
+        -------
+
+        >>> # Make a plan to assemble the object.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     description = giraffe.describe_object(structure_dir="giraffe", iter=1)
+        >>>     plan = giraffe.make_plan(description, structure_dir="giraffe", iter=1)
+        >>>     return plan
         """
-        
-    def create_soft_sphere(self, target_: str, x: float, y: float, z: float):
-        """Creates a soft deformable sphere at the specified position.
-        
+
+        return self.make_plan(description, structure_dir, iter)
+
+    def order_blocks(self, structure_dir: str, plan: str, iter: int)->str:
+        """
+        Make a list of blocks to assemble the object.
+        Parameters
+        ----------
+        structure_dir : str
+            The directory of the structure.
+        plan : str
+            The plan of the object.
+        iter : int
+            The iteration of the order.
+        Returns
+        -------
+        order : str
+            The order of the object.
         Examples
-        --------
-        >>> # Create a soft sphere and actuate it
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("simulation", available_blocks, "", 0, feed_back_image)
-        >>>     sphere = structure.create_soft_sphere("soft_sphere", 0.5, 0.2, 0.3)
-        >>>     structure.scene.build()
-        >>>     for i in range(10):
-        >>>         actu = np.array([0.2 * np.sin(0.1 * np.pi * i)])
-        >>>         sphere.set_actuation(actu)
-        >>>         structure.scene.step()
-        >>>     return structure
+        -------
+
+        >>> # Make a list of blocks to assemble the object.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     description = giraffe.describe_object(structure_dir="giraffe", iter=1)
+        >>>     plan = giraffe.make_plan(description, structure_dir="giraffe", iter=1)
+        >>>     order = giraffe.order_blocks(structure_dir="giraffe", plan, iter=1)
+        >>>     return order
         """
-        
-    def create_muscle(self, target_: str, x: float, y: float, z: float):
-        """Creates a muscle object that can be actuated.
-        
+        return self.order_blocks(structure_dir, plan, iter)
+    
+    def decide_position(self, structure_dir: str, order: str, iter: int)->list[dict]:
+        """
+        Decide the position of the blocks to assemble the object.
+        Parameters
+        ----------
+        structure_dir : str
+            The directory of the structure.
+        order : str
+            The order of the object.
+        iter : int
+            The iteration of the position.
+        Returns
+        -------
+        positions : list[dict]
+            The positions of the blocks.
         Examples
-        --------
-        >>> # Create a muscle for simulation
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("muscle_sim", available_blocks, "", 0, feed_back_image)
-        >>>     muscle = structure.create_muscle("muscle", 0.3, 0.3, 0.001)
-        >>>     return muscle
+        -------
+
+        >>> # Decide the position of the blocks to assemble the object.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     description = giraffe.describe_object(structure_dir="giraffe", iter=1)
+        >>>     plan = giraffe.make_plan(description, structure_dir="giraffe", iter=1)
+        >>>     order = giraffe.order_blocks(structure_dir="giraffe", plan, iter=1)
         """
-        
-    def get_structure_image(self):
-        """Returns top and left view images of the current structure.
-        
+        return self.decide_position(structure_dir, order, iter)
+    
+    def refine_structure(self, image: Image.Image, structure_dir: str, iter: int)->list[dict]:
+        """
+        Refine the structure to make it stable.
+        Parameters
+        ----------
+        image : Image.Image
+            The image of the structure.
+        structure_dir : str
+            The directory of the structure.
+        iter : int
+            The iteration of the refinement.
+        Returns
+        -------
+        positions : list[dict]
+            The positions of the blocks.
         Examples
-        --------
-        >>> # Get images of the structure from two angles
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("visualization", available_blocks, "", 0, feed_back_image)
-        >>>     structure.create_block("block", 0.0, 0.0, 0.0)
-        >>>     structure.scene.build()
-        >>>     structure.scene.step()
-        >>>     top_img, left_img = structure.get_structure_image()
-        >>>     return top_img, left_img
+        -------
+
+        >>> # Refine the structure to make it stable.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     image = giraffe.get_structure_image()
+        >>>     positions = giraffe.refine_structure(image, structure_dir="giraffe", iter=1)
+        >>>     return positions
         """
-        
-    def check_stability(self, target_: str, x: float, y: float, z: float):
-        """Checks if the structure would remain stable after adding a block.
-        
+        return self.refine_structure(image, structure_dir, iter)
+    
+    def make_structure(self, positions: list[dict])->None:
+        """
+        Make the structure of the object in simulation follow the order and position.
+        Parameters
+        ----------
+        positions : list[dict]
+            The positions of the blocks.
         Examples
-        --------
-        >>> # Check if adding a block would maintain stability
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("stability_test", available_blocks, "", 0, feed_back_image)
-        >>>     structure.create_block("base", 0.0, 0.0, 0.0)
-        >>>     is_stable = structure.check_stability("next_block", 0.05, 0.0, 0.04)
-        >>>     if is_stable:
-        >>>         structure.create_block("next_block", 0.05, 0.0, 0.04)
-        >>>     return is_stable
+        -------
+
+        >>> # Make the structure of the object in simulation follow the order and position.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     positions = giraffe.decide_position(structure_dir="giraffe", order="giraffe", iter=1)
+        >>>     giraffe.make_structure(positions)
         """
-        
-    def simple_query(self, question: str):
-        """Returns the answer to a basic question about the structure.
-        
+        return self.make_structure(positions)
+    
+    def get_structure_image(self)->Image.Image:
+        """
+        Get the image of the structure from three angles.
+        Returns
+        -------
+        img: Image.Image
+            The image of the structure.
         Examples
-        --------
-        >>> # Ask about the structure
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("query_test", available_blocks, "", 0, feed_back_image)
-        >>>     structure.create_block("block", 0.0, 0.0, 0.0)
-        >>>     answer = structure.simple_query("How many blocks are in the structure?")
-        >>>     return answer
+        -------
+
+        >>> # Get the isometric image of the structure.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     image = giraffe.get_structure_image()
+        >>>     return image
         """
-        
-    def llm_query(self, question: str):
-        """Returns a detailed answer about the structure using an LLM.
-        
+        return self.get_structure_image()
+    def stability_check(self, blocks: list[dict])->list[bool, dict, dict, Image.Image, Image.Image]:
+        """
+        Check the stability of the structure.
+        Parameters
+        ----------
+        blocks : list[dict]
+            The blocks of the structure.
+        Returns
+        -------
+        bool, dict, dict, Image.Image, Image.Image
+            Whether the structure is stable, the unstable block, the position delta, the x image, the y image.
         Examples
-        --------
-        >>> # Ask a complex question about the structure
-        >>> def execute_command(feed_back_image):
-        >>>     structure = Structure("analysis", available_blocks, "", 0, feed_back_image)
-        >>>     structure.create_block("block1", 0.0, 0.0, 0.0)
-        >>>     structure.create_block("block2", 0.0, 0.0, 0.04)
-        >>>     structure.scene.build()
-        >>>     structure.scene.step()
-        >>>     analysis = structure.llm_query("Does each block is stable or not?")
-        >>>     return analysis
+        -------
+
+        >>> # Check the stability of the structure.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     blocks = giraffe.decide_position(structure_dir="giraffe", order="giraffe", iter=1)
+        >>>     is_stable, unstable_block, pos_delta, x_img, y_img = giraffe.stability_check(blocks)
+        >>>     return is_stable, unstable_block, pos_delta, x_img, y_img
         """
-  Write a function using Python and the Structure class (above) that could be executed to provide an answer to the query. 
+        return self.stability_check(blocks)
+    
+    def save_structure(self, structure_dir: str):
+        """
+        Save the structure of the object in simulation.
+        Parameters
+        ----------
+        structure_dir : str
+            The directory of the structure.
+        Examples
+        -------
+
+        >>> # Save the structure of the object in simulation.
+        >>> def execute_command(object_name, feed_back_image) -> str:
+        >>>     giraffe = IsometricImage(object_name="Giraffe", feed_back_image=None)
+        >>>     giraffe.save_structure(structure_dir="giraffe")
+        """
+        return self.save_structure(structure_dir)
+    
+Write a function using Python and the Structure class (above) that could be executed to provide an answer to the query. 
 
 
 ### Examples
@@ -155,66 +326,120 @@ class Structure:
 
 Plan at this step: {plan}
 ** Expected format output begin with **
-def execute_command(image):
+def execute_command(object_name, feed_back_image):
 '''
 
 EXAMPLES_CODER = '''
-### Example 1
+### Example 1 
 Plan:
-Step 1: Initialize the structure for block simulation.
-Step 2: Create a cylinder at position (0.25, 0.1, 0.02).
-Step 3: Create a block at position (0.5, 0.1, 0.02).
-Step 4: Create a soft sphere at position (0.5, 0.2, 0.3).
-Step 5: Build the scene and run the simulation with the soft sphere being actuated.
-Step 6: Return images of the final state.
+Step 1: Get the general description of the table with 1 leg.
+Step 2: Plan which blocks to use to represent the tabletop and the leg.
 A: ```
-def execute_command(feed_back_image):
-    available_blocks = os.path.join(BASE_PATH, 'data/simulated_blocks.json')
-    structure = Structure("block", available_blocks, "", 0, feed_back_image)
-    structure.create_cylinder("cylinder", 0.25, 0.1, 0.02)
-    structure.create_block("block", 0.5, 0.1, 0.02)
-    robot_mpm = structure.create_soft_sphere("soft_sphere", 0.5, 0.2, 0.3)
-    structure.scene.build()
-    for i in range(10):
-        actu = np.array([0.2 * (0.5 + np.sin(0.01 * np.pi * i))])
-        robot_mpm.set_actuation(actu)
-        structure.scene.step()
-    
-    top_img, left_img = structure.get_structure_image()
-    return top_img, left_img
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    table = IsometricImage(object_name, feed_back_image)
+    # Step 1: Get the general description of the table with 1 leg.
+    description = table.describe_object()
+    # Step 2: Plan which blocks to use to represent the tabletop and the leg.
+    plan = table.make_plan()
+    return plan
     ```
 
 ### Example 2
 Plan:
-Step 1: Initialize a structure for building a tower.
-Step 2: Create a base block at the origin.
-Step 3: Add three more blocks stacked vertically on top of the base block.
-Step 4: Build the scene and run the simulation for 10 steps.
-Step 5: Check the stability of the tower.
-Step 6: Return the top and left view images of the tower.
+Step 1: Decide the position of the blocks to assemble the table.
+Step 2: Return the blocks position.
 A: ```
-def execute_command(feed_back_image):
-    available_blocks = os.path.join(BASE_PATH, 'data/simulated_blocks.json')
-    structure = Structure("tower", available_blocks, "tower", 4, feed_back_image)
-    
-    # Create base block
-    structure.create_block("block1", 0.0, 0.0, 0.0)
-    
-    # Stack blocks vertically
-    structure.create_block("block2", 0.0, 0.0, 0.04)
-    structure.create_block("block3", 0.0, 0.0, 0.08)
-    structure.create_block("block4", 0.0, 0.0, 0.12)
-    
-    # Build and run simulation
-    structure.scene.build()
-    for i in range(10):
-        structure.scene.step()
-    
-    # Check stability
-    stability = structure.llm_query("Is the tower stable?")
-    
-    # Get images
-    top_img, left_img = structure.get_structure_image()
-    return top_img, left_img, stability
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    table = IsometricImage(object_name, feed_back_image)
+    # Step 1: Decide the position of the blocks to assemble the table.
+    stacking_order = table.order_blocks()
+    positions = table.decide_position()
+    # Step 2: Return the blocks position.
+    return positions
+    ```
+
+### Example 3
+Plan:
+Step 1: Place the blocks in the simulation follow the order and position.
+Step 2: Get the isometric image of the structure.
+Step 3: Refine the design to make it stable.
+Step 4: Return the blocks position.
+A: ```
+def execute_command(object_name, feed_back_image):
+    #Initialize structure
+    table = IsometricImage(object_name, feed_back_image)
+    # Step 1: Place the blocks in the simulation follow the order and position.
+    positions = table.positions
+    table.build_scene()
+    table.scene.step()
+    # Step 2: Get the isometric image of the structure.
+    img = table.get_structure_image()
+    # Step 3: Refine the design to make it stable.
+    table.refine_structure(img)
+    # Step 4: Return the blocks position.
+    return positions
+    ```
+
+### Example 4
+Plan:
+Step 1: Get the general description of the letter U.
+Step 2: Plan which blocks to use to represent the letter U.
+Step 3: Decide the position of the blocks to assemble the letter U.
+Step 4: Return the blocks position.
+A: ```
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    letter = IsometricImage(object_name, feed_back_image)
+    # Step 1: Get the general description of the letter U.
+    description = letter.describe_object()
+    # Step 2: Plan which blocks to use to represent the letter U.
+    plan = letter.make_plan()
+    # Step 3: Decide the position of the blocks to assemble the letter U.
+    stacking_order = letter.order_blocks()
+    positions = letter.decide_position()
+    # Step 4: Return the blocks position.
+    return positions
+    ```
+
+### Example 5
+Plan:
+Step 1: Place the blocks in the simulation follow the order and position.
+Step 2: Get the isometric image of the structure.
+Step 3: Refine the design to make it stable.
+Step 4: Return the blocks position.
+A: ```
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    letter = IsometricImage(object_name, feed_back_image)
+    # Step 1: Place the blocks in the simulation follow the order and position.
+    letter.make_structure()
+    # Step 2: Get the isometric image of the structure.
+    img = letter.get_structure_image()
+    # Step 3: Refine the design to make it stable.
+    letter.refine_structure(img)
+    # Step 4: Return the blocks position.
+    return positions
+    ```
+### Example 5
+Plan:
+Step 1: Refine the design to make it stable.
+Step 2: Get the isometric image of the structure.
+Step 3: Refine the design to make it stable.
+Step 4: Return the blocks position.
+A: ```
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    letter = IsometricImage(object_name, feed_back_image)
+    # Step 1: Refine the design to make it stable.
+    letter.refine_structure()
+    # Step 2: Get the isometric image of the structure.
+    img = letter.get_structure_image()
+    # Step 3: Refine the design to make it stable.
+    letter.refine_structure(img)
+    # Step 4: Return the blocks position.
+    letter.save_structure()
+    return positions
     ```
 '''

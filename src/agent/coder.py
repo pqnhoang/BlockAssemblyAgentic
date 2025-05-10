@@ -31,8 +31,10 @@ class Coder:
         self.presence_penalty = presence_penalty
 
     def __call__(self, plan: str, **kwargs) -> Any:
-        code_prompt = self.coder_prompt.CODE.format(plan=plan, example=self.example_coder)
-
+        code_prompt = self.coder_prompt.CODE.format(
+            example=self.example_coder,
+            plan=plan
+        )
         input_message_coder = [
             {"role": "system", "content": self.llm.system_prompt},
             {"role": "user", "content": code_prompt},
@@ -49,8 +51,9 @@ class Coder:
         
         response_message_coder = response.choices[0].message.content
         code = '\n'.join(response_message_coder.split('\n')[1:-1]).replace('\n    \n', '\n')
+        code = code.replace("```python", "").replace("```", "")
         return code
     
-# if __name__ == "__main__":
-#     coder = Coder(coder_prompt_v2, OpenAILLM(api_file="api_key.txt"))
-#     print(coder("Step 1: Place a block at position (0.5, 0.1, 0.02)."))
+if __name__ == "__main__":
+    coder = Coder(coder_prompt_v2, OpenAILLM(api_file="api_key.txt"))
+    print(coder("Step 1: Get the general description of the letter T.\nStep 2: Plan which blocks to use to represent the letter T.\nStep 3: Decide the position of the blocks to assemble the letter T.\nStep 4: Return the json format of the design."))

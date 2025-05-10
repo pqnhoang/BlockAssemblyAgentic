@@ -1,0 +1,512 @@
+import os
+import base64
+import torch
+import torchvision
+from openai import OpenAI
+from PIL import Image
+import numpy as np
+import requests
+import json
+import sys
+from typing import List
+import pybullet as p
+import pybullet_data
+from typing import Dict, List
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+SAVE_DIR = os.path.join(BASE_PATH, "gpt_caching")
+sys.path.append(BASE_PATH)
+
+#DESIGN CLASS
+from src.structure.block import Block
+from src.structure.structure import Structure
+from src.structure.assembly import Assembly
+from src.pybullet.pybullet_axes import get_imgs
+from src.utils.utils import get_last_json_as_dict, load_from_json, save_to_json, markdown_json, slugify
+from src.prompt.prompt import prompt_with_caching
+
+
+query_image_path = os.path.join(BASE_PATH, "imgs/block.png")
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+## OpenAI API
+api_file = os.path.join(BASE_PATH, 'api_key.txt')
+with open(api_file) as f:
+    api_key = f.readline().splitlines()
+OPENAI_CLIENT = OpenAI(api_key=api_key[0])
+EMBEDDING_MODEL = "text-embedding-ada-002"
+TEMPERATURE = 0.5
+def blocks_from_json(json_data):
+    blocks = []
+    for block_data in json_data:
+        if block_data["shape"] == "cuboid":
+            dimensions = [
+                block_data["dimensions"]["x"],
+                block_data["dimensions"]["y"],
+                block_data["dimensions"]["z"],
+            ]
+        elif block_data["shape"] == "cylinder" or block_data["shape"] == "cone":
+            dimensions = [
+                block_data["dimensions"]["radius"],
+                block_data["dimensions"]["height"],
+            ]
+        else:
+            raise ValueError(f"Invalid shape {block_data['shape']}")
+
+        block = Block(
+            id=999,  # id gets updated by place blocks call, otherwise it's unknown
+            gpt_name=block_data["name"],
+            block_name="",
+            shape=block_data["shape"],
+            dimensions=dimensions,
+            position=[
+                block_data["position"]["x"],
+                block_data["position"]["y"],
+                1 * 1000,
+            ],
+            orientation=p.getQuaternionFromEuler([0, 0, np.radians(block_data["yaw"])]),
+            color=block_data["color"],
+        )
+        blocks.append(block)
+
+    return blocks
+
+def process_available_blocks(blocks):
+    available_blocks = []
+    for block_name, block in blocks.items():
+        block_shape = block["shape"]
+        block_dimensions = block["dimensions"]
+        number_available = block["number_available"]
+        available_blocks.append(
+            {
+                "shape": block_shape,
+                "dimensions": block_dimensions,
+                "number_available": number_available,
+            }
+        )
+    return available_blocks
+
+class IsometricImage:
+    """
+    A class to represent a isometric image of a object.
+    """
+    def __init__(self, object_name: str, feed_back_image: Image.Image | torch.Tensor | np.ndarray | None, available_blocks_path= None):
+        """
+        Initialize a IsometricImage class object by providing the query and feed back image. Then we create a scene object to perform build-in functions.
+        Parameters
+        ----------
+        object_name : str
+            The name of the object to be built.
+        feed_back_image : array_like
+            An array-like of the cropped image taken from the original image.
+        available_blocks_path : str, optional
+            Path to the JSON file containing available blocks. If None, uses default path.
+            
+        """
+
+        self.object_name = slugify(object_name)
+        self.structure_dir = os.path.join(SAVE_DIR, self.object_name)
+
+        if feed_back_image is None:
+            feed_back_image = Image.open(os.path.join(BASE_PATH, "imgs/block.png"))
+        else:
+            feed_back_image = feed_back_image
+        
+        if isinstance(feed_back_image, Image.Image):
+            feed_back_image = torchvision.transforms.ToTensor()(feed_back_image)
+        elif isinstance(feed_back_image, np.ndarray):
+            feed_back_image = torch.tensor(feed_back_image).permute(2, 0, 1)
+        elif isinstance(feed_back_image, torch.Tensor) and feed_back_image.dtype == torch.uint8:
+            feed_back_image = feed_back_image / 255
+        
+        self.original_img = torchvision.transforms.ToPILImage()(feed_back_image)
+        self.feed_back_image = feed_back_image
+        # Load available blocks
+        if available_blocks_path is None:
+            available_blocks_path = os.path.join(BASE_PATH, "data/simulated_blocks.json")
+        available_blocks = load_from_json(available_blocks_path)
+        self.available_blocks = process_available_blocks(available_blocks)
+        self.blocks = None
+        self.positions = None
+        # # Initialize variables
+        # self.structure = Structure()
+        # self.description = None
+        # self.plan = None
+        # self.stacking_order = None
+        # self.positions = None
+        
+    def simple_query(self, question: str):
+        """Returns the answer to a basic question asked about the image. If no question is provided, returns the answer
+        to "What is this?". The questions are about basic perception, and are not meant to be used for complex reasoning
+        or external knowledge.
+        Parameters
+        -------
+        question : str
+            A string describing the question to be asked.
+        """
+        prompt = question
+        ### BLIP2
+#         inputs = processor(images=self.PIL_img, text=prompt, return_tensors="pt").to(device="cuda", dtype=torch.bfloat16)
+#         generated_ids = model_blip.generate(**inputs)
+#         generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
+#         return generated_text
+
+        ### GPT-4o-mini
+        self.original_img.save(query_image_path,"PNG")
+        with open(query_image_path, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+        headers = {
+          "Content-Type": "application/json",
+          "Authorization": f"Bearer {OPENAI_CLIENT.api_key}"
+        }
+
+        payload = {
+          "model": "gpt-4o-mini",
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": prompt
+                },
+                {
+                  "type": "image_url",
+                  "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}",
+                    "detail": "low"
+                  }
+                }
+              ]
+            }
+          ],
+          "max_tokens": 300
+        }
+
+        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+        response_message = response.json()["choices"][0]["message"]["content"]
+        return response_message
+    
+    def llm_query(self, question, context=None, long_answer=True, queues=None):
+        """Answers a text question using GPT-4o-mini. The input question is always a formatted string with a variable in it.
+
+        Parameters
+        ----------
+        query: str
+            the text question to ask. Must not contain any reference to 'the image' or 'the photo', etc.
+        """
+        # Use the first image (top view) for the query
+        self.original_img[1].save(query_image_path,"PNG")
+        with open(query_image_path, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+        response = OPENAI_CLIENT.chat.completions.create(
+          model="gpt-4o",
+          messages=[
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": question,
+                },
+                {
+                  "type": "image_url",
+                  "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}",
+                    "detail": "high"
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens=300,
+        )
+
+        response_message = response.choices[0].message.content
+        return response_message
+    
+
+    def describe_object(self, structure_dir, iter=0):
+        """
+        Describe the object in the image.
+        """
+        prompt = f"""
+        I'm working on constructing a block tower that represents a(n) {self.object_name}. I need a concise, qualitative description of the design that captures its essence in a minimalistic style. The design should focus on simplicity, avoiding unnecessary complexity while still conveying the key features of a(n) {self.object_name}. The description should highlight the overall structure and proportions, emphasizing how the block arrangement reflects the object's shape and form. However the design shouldn't be too large, too wide, or too tall.
+        """.strip()
+        response, _ = prompt_with_caching(
+            prompt,
+            [],
+            structure_dir,
+            "description",
+            cache=True,
+            temeprature=TEMPERATURE,
+            i=iter,
+    )
+        return response
+    
+    def make_plan(self, description, structure_dir, iter=0):
+        """
+        Make a plan to assemble the object.
+        """
+
+        prompt = f"""
+        Here's a description of the layout of a {self.object_name}:
+        {description}
+
+        You have the following blocks available: 
+        {markdown_json(self.available_blocks)}
+        Write a plan for how to assemble a {self.object_name} using the available blocks. Use blocks as needed while respecting the number available constraint. 
+
+        Explain which blocks to use and their shape and dimensions. 
+
+        Explain the overall orientation of the structure.
+
+        Explain each block's role in the structure. 
+
+        Explain how the blocks should stack on top of each other (they can also just be placed on the ground). 
+
+        Do not overcomplicate the design. Try to use a minimal number of blocks to represent the key components of a {self.object_name}. Avoid making structures that are too tall, wide, or complex.
+
+        Only consider the main key components of a {self.object_name}, not minor details that are hard to represent with blocks. 
+        Use a minimal amount of blocks and keep it simple, just enough so that it looks like a {self.object_name}.
+
+        The dimensions of a cuboid are given as x, y, and z, which define the size of the block. You can rearrange these dimensions to fit your design requirements. For instance, if you need to place a block "vertically" with its longest side along the z-axis, but the dimensions are listed as x: 30, y: 30, z: 10, you can adjust them to x: 10, y: 30, z: 30 to achieve the desired orientation. Ensure the x and y dimensions are also consistent with the rest of the design.
+
+        Cylinders are always positioned "upright," with the flat sides parallel to the ground and their radius extending along the x and y axes.
+
+        Cones are always positioned with their flat side down and their pointed tip facing upwards. This means the base of the cone lies parallel to the ground plane, with the cone's height extending along the z-axis and the radius along the x and y axes.
+
+        Decide a semantic name for the block for the role it represents in the structure. 
+        Decide the colors of each block to look like a {self.object_name}. Color is an rgba array with values from 0 to 1.
+        """
+        
+        response, main_context = prompt_with_caching(
+            prompt,
+            [],
+            structure_dir,
+            "main_plan",
+            cache=True,
+            temeprature=TEMPERATURE,
+            i=iter,
+    )
+        return response
+    def order_blocks(self, structure_dir, plan, iter=0):
+        """
+        Order the blocks in the plan.
+        """
+        
+        prompt = f"""
+        Given the blocks described in the plan {plan}, I will place and stack these blocks one at a time by lowering them from a very tall height.
+
+        Please describe the sequence in which the blocks should be placed to correctly form a {self.object_name} structure. This means that blocks at the bottom should be placed first, followed by the higher blocks, so that the upper blocks can be stacked on top of the lower ones. Also note that it is difficult to stack blocks on top of a cone, so avoid placing blocks directly on top of cones.
+
+        For each block, specify whether it will be placed on the ground or on top of another block. If a block will be supported by multiple blocks, mention all of them. Ensure that the blocks are placed in a way that they remain stable and won't topple over when the physics simulation is run. Blocks cannot hover without support.
+        """.strip()
+
+        
+        response, main_context = prompt_with_caching(
+            prompt,
+            [],
+            structure_dir,
+            "order_plan",
+            cache=True,
+            temeprature=TEMPERATURE,
+            i=iter,
+    )
+        return response
+    def decide_position(self, structure_dir, order, iter=0):
+        prompt = f"""
+        With the stacking order determined {order}, I now need to know the x and y positions, as well as the yaw angle (in degrees), for each block to build a {self.object_name} structure.
+
+        The x and y coordinates should represent the center of each block. The yaw angle refers to the rotation around the z-axis in degrees. Remember, you can swap the dimensions of blocks to adjust their configuration.
+
+        Ensure that blocks at similar heights in the structure are spaced out in x and y so that they don't collide.
+
+        Make sure the structure is roughly centered at the origin (0, 0), and that each block stacks correctly on the specified blocks (or the ground). Every block must have a stable base to prevent it from falling. 
+
+        Consider the dimensions of the blocks when determining the x, y positions. Provide your reasoning for the chosen x and y positions and the yaw angle for each block.
+
+        Output a JSON following this format:
+        {markdown_json(
+            [
+                {
+                    "name": "support1",
+                    "shape": "cylinder",
+                    "dimensions": {"radius": 20, "height": 40},
+                    "color": [0.5, 0.5, 0.5, 1],
+                    "position": {"x": -50, "y": 0},
+                    "yaw": 0,
+                },
+                {
+                    "name": "support2",
+                    "shape": "cylinder",
+                    "dimensions": {"radius": 20, "height": 40},
+                    "color": [0.5, 0.5, 0.5, 1],
+                    "position": {"x": 50, "y": 0},
+                    "yaw": 0,
+                },
+                {
+                    "name": "deck",
+                    "shape": "cuboid",
+                    "dimensions": {"x": 100, "y": 50, "z": 20},
+                    "color": [0.5, 0.5, 0.5, 1],
+                    "position": {"x": 0, "y": 0},
+                    "yaw": 45,
+                },
+            ]
+        )}
+        """
+        response, main_context = prompt_with_caching(
+            prompt,
+            [],
+            structure_dir,
+            "decide_position",
+            cache=True,
+            temeprature=TEMPERATURE,
+            i=iter,
+        )
+        json_output = get_last_json_as_dict(response)
+        blocks = blocks_from_json(json_output)
+        self.blocks = blocks
+        self.positions = json_output
+        return json_output
+    
+    def get_stability_correction(self, to_build, unstable_block: Block, pos_delta, structure_json, x_img, y_img):
+        prompt = [
+            f"""
+        {markdown_json(structure_json)}
+
+        While building the {to_build} by placing blocks one at a time in the order you specified by the JSON above, I noticed that block {unstable_block.gpt_name} is unstable and falls. 
+        The block moved by {pos_delta[0]:.2f} mm in the x direction and {pos_delta[1]:.2f} mm in the y direction.
+        Please adjust the position of block {unstable_block.gpt_name} (And potentially other blocks) to make the structure more stable.
+        Make sure every block has a stable base to rest on.
+
+        Output the JSON with your corrections following the same format and provide some reasoning for the changes you made. Feel free to correct other parts of the structure if they appear incorrect or to add, change, or remove blocks.
+
+        Here is an orthographic image of the side view of the structure with the y-axis pointing to the right and the z-axis pointing up. {unstable_block.gpt_name} is highlighted in red while the other blocks are colored in white.
+        """,
+                x_img,
+            f"""
+        Here is an orthographic image of the side view of the structure with the x-axis pointing to the right and the z-axis pointing up. {unstable_block.gpt_name} is highlighted in red while the other blocks are colored in white.
+        """,
+        y_img,
+            f"""
+        Describe what you see in these images and use them to help inform your correction. Then, provide the ouptut JSON in the proper format.
+        """
+        ]
+        response, stability_context = prompt_with_caching(
+            prompt, [], structure_dir, f"stability_correction_{iter}", cache=True, i=iter
+        )
+        return response, stability_context
+    
+    def make_structure(self, positions: Dict):
+        """
+        Make a structure from a dictionary of positions.
+        """
+        if not p.isConnected():
+            p.connect(p.GUI)
+        p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        structure_dir = os.path.join(BASE_PATH, f"imgs/structures/{self.object_name}")
+        structure = Structure()
+        structure.add_blocks(self.blocks)
+        structure.place_blocks(positions)
+        save_to_json(structure.get_json(), f"{structure_dir}/{self.object_name}.json")
+        return structure
+    
+    def get_structure_image(self):
+        """
+        Get the image of the structure.
+        """
+        structure_dir = os.path.join(BASE_PATH, "imgs/structures")
+        isometric_img = get_imgs(keys=["isometric"], axes=True, labels=False)
+        img = Image.fromarray(isometric_img)
+        img.save(
+            f"{structure_dir}/{self.object_name}_isometric.png"
+        )
+        self.structure_image = img
+        return img
+    def stability_check(self, blocks, debug=False):
+        for i in range(len(blocks)):
+            structure = Structure()
+            structure.add_blocks(blocks[: i + 1])
+            structure.place_blocks()
+
+            last_block = blocks[i]
+
+            x_img, y_img = get_imgs(
+                keys=["x", "y"], axes=False, labels=False, highlight_id=last_block.id
+            )
+
+            stable, pos_delta, rot_delta = structure.check_stability(
+                blocks[i].id, debug=debug
+            )
+
+            pos_delta = 1000 * np.array(pos_delta)
+
+            if not stable:
+                return False, last_block, pos_delta, x_img, y_img
+
+        return True, None, None, x_img, y_img
+
+    def refine_structure(self, blocks, pos_delta, x_img, y_img):
+        for i in range(2):
+            stable, unstable_block, pos_delta, x_img, y_img = self.stability_check(
+                blocks, debug=True
+            )
+            if stable:
+                break
+            else:
+                print(unstable_block.gpt_name)
+            
+            response, stability_context = self.get_stability_correction(
+                self.object_name, unstable_block, pos_delta, self.positions, x_img, y_img
+            )
+            json_output = get_last_json_as_dict(response)
+            blocks = blocks_from_json(json_output)
+            structure = Structure()
+            structure.add_blocks(blocks)
+            structure.place_blocks()
+            isometric_img = get_imgs(keys=["isometric"], axes=True, labels=False)
+            img = Image.fromarray(isometric_img)
+            img.save(
+                f"{structure_dir}/{self.object_name}_stability_correction_{iter}_{i}.png"
+            )
+
+    def save_structure(self, structure_dir):
+        """
+        Save the structure to a JSON file.
+        """
+        assembly = Assembly(
+            structure=structure,
+            structure_directory=structure_dir,
+            to_build=self.object_name,
+            isometric_image=self.feed_back_image,
+            available_blocks_json=self.available_blocks,
+            assembly_num=iter,
+            eval_rating=None,
+            eval_guesses=None,
+        )
+        assembly.save_to_structure_dir()
+        return assembly
+
+if __name__ == "__main__":
+    # Initialize pybullet
+    if not p.isConnected():
+                p.connect(p.GUI)
+    p.setAdditionalSearchPath(pybullet_data.getDataPath())
+
+    # Pipeline
+    isometric_image = IsometricImage(object_name="Giraffe", feed_back_image=None)
+    structure_dir = isometric_image.structure_dir
+    description = isometric_image.describe_object(structure_dir, 0)
+    plan = isometric_image.make_plan(description, structure_dir, 0)
+    order = isometric_image.order_blocks(structure_dir, plan, 0)
+    positions = isometric_image.decide_position(structure_dir, order, 0)
+    isometric_image.make_structure(positions)
+    structure = isometric_image.get_structure_image()
+    isometric_image.refine_structure(isometric_image.blocks, [0, 0], None, None)
+
+    # Save the structure
+    isometric_image.save_structure(structure_dir)
+    

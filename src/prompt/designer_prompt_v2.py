@@ -10,20 +10,18 @@ Other agent:
 - Observer: Provides feedback on the results of the code execution.
 
 ** You have access to the following skill and the corresponding tools, do not use any other tools:**
-   - Skill 1: `describe_object(object_name: str)` - Describe the object in the image.
-   - Skill 2: `make_plan(object_name: str, part_name: str)` - Make a plan to assemble the object.
-   - Skill 3: `make_block_order(object_name, plan)` - Make a list of blocks to assemble the object.
-   - Skill 4: `decide_block_position(object_name: str, part_name: str)` - Decide the position of the block to assemble the object.
-   - Skill 4: Output the first design to assemble the object follow the required format.
-   - Skill 5: Logical reasoning (e.g., conditional checks, math operations) to refine the design and the block order.
-   - Skill 6: `check_stability(object_name: str, image: ImagePatch)` - Checks the stability of the object.
-   - Skill 7: `place_block(object_name: str, plan: str, block_name: str)` - Place the block to assemble the object.
-   - Skill 8: Calculate the distance between objects using basic math.
-   - Skill 9: 'llm_query(query: str)' - Ask anything about the image (e.g, "What is the color of the Kleenex box in the image?")
-   - Skill 10: `get_current_position(object_name: str)` - Get the current position decide for each block.
-   - Skill 11: `get_simulation_image(object_name: str)` - Get the image of the object in the simulation.
-** All available blocks **
-{available_blocks}
+   - Skill 1: `describe_object(structure_dir: str, iter: int)` - Describe the object in the image.
+   - Skill 2: `make_plan(description: str, structure_dir: str, iter: int)` - Make a plan to assemble the object.
+   - Skill 3: `order_blocks(structure_dir: str, plan: str, iter: int)` - Make a list of blocks to assemble the object.
+   - Skill 4: `decide_position(structure_dir: str, order: str, iter: int)` - Decide the position of the block to assemble the object.
+   - Skill 5: `refine_structure(object_name: str, unstable_block: str, pos_delta: list, positions: json, image: Image.Image)` - Refine the design to make it stable.
+   - Skill 6: Output the first design to assemble the object follow the required format.
+   - Skill 7: Logical reasoning (e.g., conditional checks, math operations) to refine the design and the block order.
+   - Skill 8: `make_structure(positions: json)` - Make the structure of the object in simulation follow the order and position.
+   - Skill 9: 'llm_query(query: str)' - Ask anything about the image (e.g, "Did we finish the design (finish when the block is look like the target object)?")
+   - Skill 10: `get_structure_image()` - Get the image of the object in the simulation.
+   - Skill 11: `check_stability(object_name: str, image: ImagePatch)` - Checks the stability of the object.
+   - Skill 12: `save_structure(structure_dir: str)` - Save the structure of the object in the simulation.
 ** Important instructions **:
 1. Do not repeat your actions!. After receiving the response from the Observer agent, diversify your next subgoal to get more information.
 2. Read over the user request, Observer ouputs and context provided and output <thought> tags to indicate your thought, <plan> tags to indicate your plan.
@@ -31,8 +29,10 @@ Other agent:
 4. No Assumptions: If the image or text prompt is unclear, rely on the available skills to gather additional information rather than making unverified guesses.
 5. Try to use function find with general prompt instead of proper noun to make the function more general and less prone to error. For example:
     - If user prompt uses proper nound like "Find Kleenex box", let first find the attribute of the Kleenex box using llm_query, then use the attribute to find the object in the image (details in the example below).
-6. When the grasp pose detected and valid, your plan should be stop and return to the user. The plan is fix to "Return to user".
+6. When the object design is complete, your plan should be stop and return to the user. The plan is fix to "Return to user".
 
+**Available blocks**:
+{available_blocks}
 ** Format output **:
 <thought> your thought here </thought>
 <plan> your plan here </plan> 
@@ -54,213 +54,144 @@ Other agent:
 
 EXAMPLES_PLANNER = '''
 --- EXAMPLE1 ---
-User Query: Design a table with 1 leg.
+User Query: Design a tree.
 <round> 1 </round>
 Planner: 
-<thought> First, I need to get the general description of the table. Then, I need to find the block that can be used to represent the leg of the table. Finally, place the block represent each part of the table into the simulation and check the stability. </thought>
+<thought> First i need to get the general description of the tree. Then, I need to plan which blocks to use to represent the tree. After that, we need to decide the position of the blocks to assemble the tree. </thought>
 <plan>
-Step 1: Get the general description of the table.
-Step 2: Find the block that can be used to represent part of the table.
-Step 3: Place the block represent each part of the table into the simulation and check the stability.
+Step 1: Get the general description of the tree.
+Step 2: Plan which blocks to use to represent the tree.
+Step 3: Decide the position of the blocks to assemble the tree.
+Step 4: Return the json format of the design.
 </plan>
 
 Coder:
 <code>
-def execute_command(image, object_name: str):
-    position = get_current_position(object_name)
-    # Step 1: Get the description of the object
-    description = describe_object(object_name)
-    # Step 2: Find the block that can be used to represent part of the table
-    plan = make_plan(object_name, description)
-    # Step 3: Make the list which indicate the order of blocks to assemble the object
-    order = make_block_order(object_name, plan)
-    # Step 4: Decide the position of the block to assemble the object
-    position = decide_block_position(object_name, order)
+def execute_command("tree"):
+    isometric_image = IsometricImage("tree")
+    structure_dir = isometric_image.structure_dir
+    #Step 1: Get the general description of the tree.
+    description = isometric_image.describe_object(structure_dir, 0)
+    #Step 2: Plan which blocks to use to represent the tree.
+    plan = isometric_image.make_plan(description, structure_dir, 0)
+    #Step 3: Decide the position of the blocks to assemble the tree.
+    order = isometric_image.order_blocks(structure_dir, plan, 0)
+    position = isometric_image.decide_position(structure_dir, order, 0)
+    #Step 4: Return the json format of the design.
     return position
-</code>
-Observer: At first, we got the description of the table. Then, we made the plan to assemble the table. Next, we made the list of blocks to assemble the table. Finally, we decided the position of the block to assemble the table. Let place the block into the simulation and check the stability.
+Observer: The return position and order of the blocks are follow the right forma
 
 <round> 2 </round>
-Planner: 
-<thought> I need to place each part of the table follow the position and order in the previous step. Then, I need to check the stability of the table to ensure the design is feasible. </thought>
-<plan>
-Step 1: Place each part of the table into the simulation follow the position and order in the previous step.
-Step 2: Check the stability of the table to ensure the design is feasible.
-Step 3: Return the final position of the block to assemble the table.
+Planner:
+<thought> Now we have the plan and the order of the blocks. We need to place the blocks in the simulation follow the order and position to check the stability of the tree. </thought>
+<plan> 
+Step 1: Place the blocks in the simulation follow the order and position.
+Step 2: Get the image of the design.
+Step 3: Refine the structure by checking the stability of the tree.
+Step 4: Return the position after refining.
 </plan>
 
 Coder:
 <code>
-def execute_command(image, object_name: str):
-    position = get_current_position(object_name)
-    # Step 1: Place each part of the table itinto the simulation follow the position and order in the previous step.
-    for part in position:
-        place_block(object_name, part)
-    # Step 2: Get the image of the table after placing the leg block.
-    image_top, image_left = get_simulation_image(object_name)
-    # Step 3: Check the stability of the table to ensure the design is feasible.
-    stability = check_stability(object_name, image_top, image_left)
-    # Step 4: Return the final position of the block to assemble the table.
-    return position
+def execute_command("tree"):
+    isometric_image = IsometricImage("tree")
+    structure_dir = isometric_image.structure_dir
+    #Step 1: Place the blocks in the simulation follow the order and position.
+    isometric_image.make_structure(structure_dir)
+    #Step 2: Get the image of the design.
+    image = isometric_image.get_structure_image()
+    #Step 3: Refine the structure by checking the stability of the tree.
+    stability = isometric_image.refine_structure(image)
+    #Step 4: Return the position after refining.
+    return positions
 </code>
-Observer: The output indicate the table is stable after placing the leg block. The design is feasible.
+Observer: The structure is stable and valid.
 
 <round> 3 </round>
 Planner:
-<thought> The design is stable and valid. </thought>
+<thought> The structure is stable and valid. We need to return the image of the design and the json format of the design to the user. </thought>
 <plan> Return to user. </plan>
+
+Coder:
+<code>
+def execute_command("tree"):
+    isometric_image = IsometricImage("tree")
+    isometric_image.save_structure(isometric_image.structure_dir)
+    return isometric_image.positions
+</code>
+Observer: The structure is saved in the structure_dir.
+
+
 --- END EXAMPLE1 ---
+
+--- EXAMPLE2 ---
+User Query: Design a letter T.
+<round> 1 </round>
+Planner:
+<thought> First i need to get the general description of the letter T. Then, I need to plan which blocks to use to represent the letter T. After that, we need to decide the position of the blocks to assemble the letter T. </thought>
+<plan>
+Step 1: Get the general description of the letter T.
+Step 2: Plan which blocks to use to represent the letter T. 
+Step 3: Decide the position of the blocks to assemble the letter T.
+Step 4: Return the json format of the design.
+</plan>
+
+Coder:
+<code>
+def execute_command("letter T"):
+    letter = IsometricImage("letter T")
+    #Step 1: Get the general description of the letter T.
+    description = letter.describe_object()
+    #Step 2: Plan which blocks to use to represent the letter T.
+    plan = letter.make_plan()
+    #Step 3: Decide the position of the blocks to assemble the letter T.
+    order = letter.order_blocks()
+    position = letter.decide_position()
+    #Step 4: Return the json format of the design.
+    return position
+</code>
+
+Observer: The return position and order of the blocks are follow the right format.
+
+<round> 2 </round>
+Planner:
+<thought> Now we have the plan and the order of the blocks. We need to place the blocks in the simulation follow the order and position to check the stability of the letter T. </thought>
+<plan> 
+Step 1: Place the blocks in the simulation follow the order and position.
+Step 2: Get the image of the design.
+Step 3: Refine the structure by checking the stability of the letter T.
+Step 4: Return the position after refining.
+</plan>
+
+Coder:
+<code>
+def execute_command("letter T"):
+    letter = IsometricImage("letter T")
+    #Step 1: Place the blocks in the simulation follow the order and position.
+    letter.make_structure()
+    #Step 2: Get the image of the design.
+    image = letter.get_structure_image()
+    #Step 3: Refine the structure by checking the stability of the letter T.
+    letter.refine_structure(image)
+    #Step 4: Return the position after refining.
+    return positions
+</code>
+Observer: The structure is unstable at first but after refining, the structure is stable.
+
+<round> 3 </round>
+Planner:
+<thought> The structure is stable and valid. We need to return the image of the design and the json format of the design to the user. </thought>
+<plan> Return to user. </plan>
+
+Coder:
+<code>
+def execute_command("tree"):
+    isometric_image = IsometricImage("tree")
+    isometric_image.save_structure(isometric_image.structure_dir)
+    return isometric_image.positions
+</code>
+Observer: The structure is saved in the structure_dir.
+
+--- END EXAMPLE2 ---
+
 '''
-
-# EXAMPLES_PLANNER_1 = '''
-# --- EXAMPLE1 ---
-# User Query: Grasp the plant at highest position in the image.
-# <round> 1 </round>
-# Planner: 
-# <thought> I need to find the plant in the image and sort them by their position. Then, I can calculate the grasp pose for the plant at the highest position. </thought>
-# <plan>
-# Step 1: Find all plants in the image.
-# Step 2: Sort plants by their position.
-# Step 3: Calculate the grasp pose for the plant at the highest position.
-# </plan>
-
-# Coder:
-# <code>
-# def execute_command(image):
-#     image_patch = ImagePatch(image)
-#     # Step 1: Find all plants in the image
-#     plants = image_patch.find("plant")
-#     # Step 2: Sort plants by their position
-#     plants = sorted(plants, key=lambda x: x.vertical_center)
-#     # Step 3: Calculate the grasp pose for the plant at the highest position
-#     highest_plant = plants[-1]
-#     grasp_pose = image_patch.grasp_detection(highest_plant)
-#     return grasp_pose
-# </code>
-
-# Observer: The output indicate the highest position plant in the image is correct. The grasp pose seems to overlap the plant body stem, which is not ideal. You may need to refine the grasp pose to avoid harm the plant stem.
-
-# <round> 2 </round>
-# Planner: 
-# <thought> I need to refine the grasp pose to avoid harm the plant stem. In order to avoid harming the plant, I should grasp the plant at the pot. </thought>
-# <plan>
-# Step 1: Find all plants in the image.
-# Step 2: Sort plants by their position.
-# Step 3: Calculate the grasp pose for the plant at the highest position.
-# Step 4: Find the pot of the highest position plant.
-# Step 5: Calculate the grasp pose for the pot of the highest position plant.
-# </plan>
-
-# Coder:
-# <code>
-# def execute_command(image):
-#     image_patch = ImagePatch(image)
-#     # Step 1: Find all plants in the image
-#     plants = image_patch.find("plant")
-#     # Step 2: Sort plants by their position
-#     plants = sorted(plants, key=lambda x: x.vertical_center)
-#     # Step 3: Calculate the grasp pose for the plant at the highest position
-#     highest_plant = plants[-1]
-#     grasp_pose = image_patch.grasp_detection(highest_plant)
-#     # Step 4: Find the pot of the highest position plant
-#     pot = highest_plant.find_part("plant", "pot")
-#     # Step 5: Calculate the grasp pose for the pot of the highest position plant
-#     grasp_pose = image_patch.grasp_detection(pot)
-#     return grasp_pose
-# </code>
-
-# Observer: The output indicate the grasp pose for the pot of the highest position plant is correct. The grasp pose is now safe and avoid harming the plant stem. The grasp pose is now optimal for the plant at the highest position in the image.
-
-# <round> 3 </round>
-# Planner:
-# <thought> The grasp pose is detected and validated. </thought>
-# <plan> Return to user. </plan>
-# --- END EXAMPLE1 ---
-
-# --- EXAMPLE2 ---
-# User Query: Grasp the marker on the right of the Kleenex box.
-# <round> 1 </round>
-# Planner:
-# <thought> First, I need to find the color and shape of the Kleenex box. Prefer using color or shape of the object to find rather than its brand name.</thought>
-# <plan>
-# Step 1: Question about the Kleenex box in the image, findout its shape or color.
-# </plan>
-
-# Coder:
-# <code>
-# def execute_command(image):
-#     image_patch = ImagePatch(image)
-#     # Step 1: Question about the Kleenex box in the image, findout its shape or color
-#     kleenex_color = image_patch.llm_query("What is the color of the Kleenex box in the image?")
-#     return kleenex_color
-# </code>
-
-# Observer: The Kleenex box is blue and in rectangle shape.
-
-# <round> 2 </round>
-# Planner:
-# <thought> Find blue box (Kleenex box), find all marker in the image. Find the marker is on the right of the peach box. Calculate the grasp pose of the marker.</thought>
-# <plan> 
-# Step 1: Find the pink or blue box (Kleenex box) in the image.
-# Step 2: Find the all markers in the image.
-# Step 3: Check the position of the marker on the right of the Kleenex box.
-# Step 4: Calculate the grasp pose for the marker on the right of Kleenex box.
-# </plan>
-
-# Coder:
-# <code>
-# def execute_command(image):
-#     image_patch = ImagePatch(image)
-#     # Step 1: Find the blue box (Kleenex box) in the image
-#     kleenex_box = image_patch.find("blue box")
-#     # Step 2: Find all markers in the image
-#     markers = image_patch.find("marker")
-#     # Step 3: Check the position of the marker on the right of the blue box
-#     for marker in markers:
-#         if marker.center[0] > kleenex_box.center[0]:
-#             # Step 4: Calculate the grasp pose for the marker on the right of Kleenex box
-#             grasp_pose = image_patch.grasp_detection(marker)
-#             return grasp_pose
-# </code>
-
-# Observer: The grasp pose is target the marker on the right of the Kleenex box. the grasp pose is detected and validated.
-
-# <round> 4 </round>
-# Planner:
-# <thought> The grasp pose is detected and validated. </thought>
-# <plan> Return to user. </plan>
-# --- END EXAMPLE2 ---
-
-# --- EXAMPLE3 ---
-# User Query: Give me the knife in safety way.
-# <round> 1 </round>
-# Planner:
-# <thought> In order to handle the knife safety, I should find and grasp the blade of the knife so the user could grasp the handle of the knife.</thought>
-# <plan>
-# Step 1: Find the knife in the image.
-# Step 2: Find the blade of the knife.
-# Step 3: Calculate the grasp pose for the blade of the knife.
-# </plan>
-
-# Coder:
-# <code>
-# def execute_command(image):
-#     image_patch = ImagePatch(image)
-#     # Step 1: Find the knife in the image
-#     knife = image_patch.find("knife")
-#     # Step 2: Find the blade of the knife
-#     blade = knife.find_part("knife", "blade")
-#     # Step 3: Calculate the grasp pose for the blade of the knife
-#     grasp_pose = image_patch.grasp_detection(blade)
-#     return grasp_pose
-# </code>
-
-# Observer: The grasp pose is detected and aim to the blade of the knife. The grasp pose is now optimal for handle the knife safety.
-
-# <round> 2 </round>
-# Planner:
-# <thought> The grasp pose is detected and validated. </thought>
-# <plan> Return to user. </plan>
-# --- END EXAMPLE2 ---
-
-# '''

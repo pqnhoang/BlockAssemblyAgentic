@@ -11,8 +11,8 @@ import torch
 import base64
 from PIL import Image
 from src.agent.llm import OpenAILLM
-from src.prompt import observer_prompt_v1
 from pathlib import Path
+from src.prompt import observer_prompt_v1
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:

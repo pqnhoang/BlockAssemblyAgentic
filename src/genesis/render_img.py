@@ -8,10 +8,6 @@ from datetime import datetime
 from PIL import Image
 import argparse
 
-dt = 5e-4
-E, nu = 3.e4, 0.45
-rho = 1000.
-
 def main():
 
     parser = argparse.ArgumentParser()
@@ -24,31 +20,24 @@ def main():
     ########################## create a scene ##########################
 
     scene = gs.Scene(
-    viewer_options = gs.options.ViewerOptions(
-        camera_pos    = (0, -2.5, 1.5),
-        camera_lookat = (0.0, 0.0, 0.5),
-        camera_fov    = 30,
-        max_FPS       = 60,
+    viewer_options=gs.options.ViewerOptions(
+        camera_fov=30,
     ),
-    sim_options = gs.options.SimOptions(
-        dt = 0.01,
+    sim_options=gs.options.SimOptions(
+        dt       = 4e-3,
+        substeps = 10,
     ),
-    show_viewer=args.vis,
     rigid_options=gs.options.RigidOptions(
         gravity=(0.0, 0.0, -10.0),
     ),
     mpm_options=gs.options.MPMOptions(
-        dt=dt,
-        lower_bound=(-1.0, -1.0, -0.2),
-        upper_bound=( 1.0,  1.0,  1.0),
-    ),
-    fem_options=gs.options.FEMOptions(
-        dt=dt,
-        damping=45.,
+        lower_bound   = (-0.5, -1.0, 0.0),
+        upper_bound   = (0.5, 1.0, 1),
     ),
     vis_options=gs.options.VisOptions(
-        show_world_frame=False,
+        visualize_mpm_boundary = True,
     ),
+    show_viewer = args.vis,
 )
 
     ########################## entities ##########################
@@ -71,51 +60,41 @@ def main():
         )
     )
 
-    worm = scene.add_entity(
-        morph=gs.morphs.Mesh(
-            file='meshes/worm/worm.obj',
-            pos=(0.3, 0.3, 0.001),
-            scale=0.1,
-            euler=(90, 0, 0),
+    obj_elastic = scene.add_entity(
+    material=gs.materials.MPM.Elastic(),
+    morph=gs.morphs.Box(
+        pos  = (0.0, -0.5, 0.25),
+        size = (0.2, 0.2, 0.2),
+    ),
+    surface=gs.surfaces.Default(
+        color    = (1.0, 0.4, 0.4),
+        vis_mode = 'visual',
+    ),
+)
+
+    obj_sand = scene.add_entity(
+        material=gs.materials.MPM.Liquid(),
+        morph=gs.morphs.Box(
+            pos  = (0.0, 0.0, 0.25),
+            size = (0.3, 0.3, 0.3),
         ),
-        material=gs.materials.MPM.Muscle(
-            E=5e5,
-            nu=0.45,
-            rho=10000.,
-            model='neohooken',
-            n_groups=4,
+        surface=gs.surfaces.Default(
+            color    = (0.3, 0.3, 1.0),
+            vis_mode = 'particle',
         ),
     )
 
-    def set_muscle_by_pos(robot):
-        if isinstance(robot.material, gs.materials.MPM.Muscle):
-            pos = robot.get_state().pos
-            n_units = robot.n_particles
-        elif isinstance(robot.material, gs.materials.FEM.Muscle):
-            pos = robot.get_state().pos[robot.get_el2v()].mean(1)
-            n_units = robot.n_elements
-        else:
-            raise NotImplementedError
-
-        pos = pos.cpu().numpy()
-        pos_max, pos_min = pos.max(0), pos.min(0)
-        pos_range = pos_max - pos_min
-
-        lu_thresh, fh_thresh = 0.3, 0.6
-        muscle_group = np.zeros((n_units,), dtype=int)
-        mask_upper = pos[:, 2] > (pos_min[2] + pos_range[2] * lu_thresh)
-        mask_fore = pos[:, 1] < (pos_min[1] + pos_range[1] * fh_thresh)
-        muscle_group[ mask_upper &  mask_fore] = 0 # upper fore body
-        muscle_group[ mask_upper & ~mask_fore] = 1 # upper hind body
-        muscle_group[~mask_upper &  mask_fore] = 2 # lower fore body
-        muscle_group[~mask_upper & ~mask_fore] = 3 # lower hind body
-
-        muscle_direction = np.array([[0, 1, 0]] * n_units, dtype=float)
-
-        robot.set_muscle(
-            muscle_group=muscle_group,
-            muscle_direction=muscle_direction,
-        )
+    obj_plastic = scene.add_entity(
+        material=gs.materials.MPM.ElastoPlastic(),
+        morph=gs.morphs.Sphere(
+            pos  = (0.0, 0.5, 0.35),
+            radius = 0.1,
+        ),
+        surface=gs.surfaces.Default(
+            color    = (0.4, 1.0, 0.4),
+            vis_mode = 'particle',
+        ),
+    )
 
     
     # Define your Euler angles in degrees (roll, pitch, yaw) = (0, 0, 90)
@@ -152,28 +131,21 @@ def main():
     scene.build()
     ############ Optional: set control gains ############
     table_leg.set_quat(quat)
-    set_muscle_by_pos(worm)
     scene.step()
 
     import sys
     if sys.platform == "darwin":
-        scene._visualizer._viewer._pyrender_viewer._renderer.dpscale = 1
+        scene._visualizer._viewer._pyrender_viewer._renderer.dpscale = 2
 
-    gs.tools.run_in_another_thread(fn=run_sim, args=(scene, args.vis, cam,  worm))
+    gs.tools.run_in_another_thread(fn=run_sim, args=(scene, args.vis, cam, obj_elastic, obj_sand, obj_plastic))
     if args.vis:
         scene.viewer.start()
 
 
-def run_sim(scene, enable_vis, cam, worm):
-    cam.start_recording()
-    
-    for i in range(1000):
-        actu1 = np.array([0, 0, 0, 1. * (0.5 + np.sin(0.005 * np.pi * i))])
-
-        worm.set_actuation(actu1)
+def run_sim(scene, enable_vis, cam, obj_elastic, obj_sand, obj_plastic):
+    horizon = 1000
+    for i in range(horizon):
         scene.step()
-    
-    cam.stop_recording()
     if enable_vis:
         scene.viewer.stop()
     

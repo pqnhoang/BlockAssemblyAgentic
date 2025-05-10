@@ -22,8 +22,6 @@ requests = "^2.31.0"
 ipython = "^8.0.0"
 torch = "^2.6.0"
 torchvision = "^0.21.0"
-pybullet = "^3.2.5"
-
 
 [build-system]
 requires = ["poetry-core"]

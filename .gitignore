@@ -4,3 +4,10 @@ src/agent/api_key.txt
 .env
 .env.local 
 .vscode/extensions.json
+/gpt_caching
+/final_result
+/somo
+/poetry.lock
+/api_key.txt
+.env
+/imgs
