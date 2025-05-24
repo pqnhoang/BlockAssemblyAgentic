@@ -4,8 +4,7 @@ import pybullet_data
 import os
 import sys
 from PIL import Image
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-print(BASE_PATH)
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(BASE_PATH)
 
 from src.utils.transform_utils import quat2mat, angular_error
@@ -18,7 +17,9 @@ from src.pybullet.place_blocks_in_json import (
 from src.pybullet.pybullet_axes import get_imgs
 import time
 from typing import List
-
+from data.soft_block_box import manipulator_definition
+from data.soft_block_capsule import manipulator_definition2
+from somo.sm_continuum_manipulator import SMContinuumManipulator
 
 class Structure:
     def __init__(self, available_blocks={}):
@@ -148,6 +149,8 @@ def create_block(block):
         return _create_cuboid(block)
     elif block.shape == "cylinder":
         return _create_cylinder(block)
+    elif block.shape == "joint":
+        return _create_joint(block)
     else:
         raise ValueError(f"Shape {block.shape} not supported")
 
@@ -216,7 +219,33 @@ def _create_cylinder(block, lateral_friction=0.5, spinning_friction=0.2):
     )
     return id
 
+def _create_joint(block, lateral_friction=0.5, spinning_friction=0.2):
+    dimensions, position, orientation, color = (
+        block.dimensions,
+        block.position,
+        block.orientation,
+        block.color,
+    )
+    baseStartPos = [x / 1000 for x in position]
+    baseStartOrn = orientation
 
+    
+    # Khởi tạo SMContinuumManipulator với manipulator_definition
+    joint_block = SMContinuumManipulator(manipulator_definition)
+    physics_client = 0
+    joint_block.load_to_pybullet(
+        baseStartPos=baseStartPos,
+        baseStartOrn=baseStartOrn,
+        baseConstraint="static",
+        physicsClient=physics_client,
+    )
+    print("joint_block.bodyUniqueId", joint_block.bodyUniqueId)
+    p.changeDynamics(joint_block.bodyUniqueId, -1, lateralFriction=lateral_friction, spinningFriction=spinning_friction)
+    p.changeDynamics(joint_block.bodyUniqueId, -1, restitution=1)
+
+    return joint_block.bodyUniqueId
+    
+    
 def test_with_gui():
     if not p.isConnected():
         p.connect(p.GUI)
@@ -228,32 +257,62 @@ def test_with_gui():
         block_name="block1",
         gpt_name="box",
         shape="cuboid",
-        dimensions=[100, 100, 100],
-        position=[0, 0, 50],
+        dimensions=[180, 100, 240],
+        position=[0, 0, 120],
         orientation=[0, 0, 0, 1],
         color=[1.0, 0, 0, 1.0],
     )
+
     block2 = Block(
         id=2,
         block_name="block2",
-        gpt_name="box",
+        gpt_name="box2",
         shape="cuboid",
         dimensions=[180, 100, 180],
         position=[0, 0, 150],
         orientation=[0, 0, 0, 1],
         color=[1.0, 0, 0, 1.0],
     )
-
+    block3 = Block(
+        id=3,
+        block_name="block3",
+        gpt_name="box3",
+        shape="joint",
+        dimensions=[100, 100, 100],
+        position=[0, 0, 300],
+        orientation=[0, 0, 0, 1],
+        color=[1.0, 0, 0, 1.0],
+    )
+    
     structure.add_block(block1)
     structure.place_blocks()
     structure.add_block(block2)
     structure.place_blocks()
-    print(structure.check_stability(2))
+    structure.add_block(block3)
+    structure.place_blocks()
+    print(structure.check_stability(3))
 
     print("JSON", structure.get_json())
     print("gpt_json", structure.get_gpt_json())
-    print("get by id", structure.get_block_by_id(1))
+    print("get by id", structure.get_block_by_id(3))
+    # time_step = 0.001
+    # p.setTimeStep(time_step)
+    # n_steps = 20000
+    # sim_time = 0.0
+    # real_time = time.time()
+    # torque_fns = [
+    #     lambda t: 0
+    # ]  # Only one torque function for the revolute joint
+    # for i in range(n_steps):
+    #     # Only apply torque to the revolute joint (axis 1)
 
+    #     p.stepSimulation()
+    #     sim_time += time_step
+
+    #     # time it took to simulate
+    #     delta = time.time() - real_time
+    #     real_time = time.time()
+    #     # print(delta)
 
     # structure.place_blocks()
 
@@ -271,7 +330,7 @@ def test_with_gui():
     isometric_img = get_imgs(keys=["isometric"], axes=True, labels=False)
     img = Image.fromarray(isometric_img)
     img.save(f"{BASE_PATH}/imgs/isometric_img.png")
-    breakpoint()
+    p.disconnect()
 
 
 if __name__ == "__main__":

@@ -52,4 +52,4 @@ class Designer:
     
 if __name__ == "__main__":
     designer = Designer(designer_prompt=designer_prompt_v2, llm=OpenAILLM(api_file=os.path.join(BASE_PATH, 'api_key.txt')))
-    print(designer("Design a letter T", None, None))
+    print(designer("Design a table", None, None))

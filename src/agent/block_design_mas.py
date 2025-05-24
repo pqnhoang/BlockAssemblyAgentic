@@ -43,8 +43,8 @@ class BlockDesignMAS:
 
         if feed_back_image is None:
             feed_back_image = Image.open(os.path.join(BASE_PATH, "imgs/block.png"))
-        else:
-            feed_back_image = feed_back_image
+        # else:
+        #     feed_back_image = feed_back_image
         for idx in range(self.max_round):
             print(10*'=',f'Round {idx}',10*'=')
             ## Planner
@@ -76,6 +76,7 @@ class BlockDesignMAS:
         
         return out
     
-# if __name__ == "__main__":
-#     block_agent = BlockDesignMAS(api_file="api_key.txt")
-#     block_agent.query("Design a one leg table", "/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/imgs/scene_img/rgb_top.png")
+if __name__ == "__main__":
+    block_agent = BlockDesignMAS(api_file="api_key.txt")
+    block_agent.query("tree", None)
+    

@@ -20,8 +20,8 @@ class Block:
     ) -> None:
         assert len(color) == 4, "color is not length 4"
         assert (
-            shape == "cuboid" or shape == "cylinder" or shape == "cone"
-        ), f"shape must be cuboid or cylinder or cone: {shape}"
+            shape == "cuboid" or shape == "cylinder" or shape == "cone" or shape == "joint"
+        ), f"shape must be cuboid or cylinder or cone or joint: {shape}"
         if shape == "cuboid":
             assert (
                 len(dimensions) == 3
@@ -30,6 +30,10 @@ class Block:
             assert (
                 len(dimensions) == 2
             ), f"dimensions for cylinder not length 2: {dimensions}"
+        elif shape == "joint":
+            assert (
+                len(dimensions) == 3
+            ), f"dimensions for joint not length 3: {dimensions}"
         assert (
             len(orientation) == 4 or len(orientation) == 3
         ), f"orientation must be length 4 quaternion or length 3 euler angles: {orientation}"
@@ -50,7 +54,7 @@ class Block:
     def get_json(self):
         dimensions = (
             {"x": self.dimensions[0], "y": self.dimensions[1], "z": self.dimensions[2]}
-            if self.shape == "cuboid"
+            if self.shape == "cuboid" or self.shape == "joint"
             else {"radius": self.dimensions[0], "height": self.dimensions[1]}
         )
 

@@ -9,27 +9,27 @@ Other agent:
 - Coder: Converts the plan into executable Python code.
 - Observer: Provides feedback on the results of the code execution.
 
-** You have access to the following skill and the corresponding tools, do not use any other tools:**
-   - Skill 1: `describe_object(structure_dir: str, iter: int)` - Describe the object in the image.
-   - Skill 2: `make_plan(description: str, structure_dir: str, iter: int)` - Make a plan to assemble the object.
-   - Skill 3: `order_blocks(structure_dir: str, plan: str, iter: int)` - Make a list of blocks to assemble the object.
-   - Skill 4: `decide_position(structure_dir: str, order: str, iter: int)` - Decide the position of the block to assemble the object.
-   - Skill 5: `refine_structure(object_name: str, unstable_block: str, pos_delta: list, positions: json, image: Image.Image)` - Refine the design to make it stable.
-   - Skill 6: Output the first design to assemble the object follow the required format.
-   - Skill 7: Logical reasoning (e.g., conditional checks, math operations) to refine the design and the block order.
-   - Skill 8: `make_structure(positions: json)` - Make the structure of the object in simulation follow the order and position.
-   - Skill 9: 'llm_query(query: str)' - Ask anything about the image (e.g, "Did we finish the design (finish when the block is look like the target object)?")
-   - Skill 10: `get_structure_image()` - Get the image of the object in the simulation.
-   - Skill 11: `check_stability(object_name: str, image: ImagePatch)` - Checks the stability of the object.
-   - Skill 12: `save_structure(structure_dir: str)` - Save the structure of the object in the simulation.
+**You have access to the following skills and the corresponding tools, do not use any other tools:**
+   - Skill 1: `describe_object(iter: int)` - Describe the object in the image. Returns a text description.
+   - Skill 2: `make_plan(description: str, iter: int)` - Make a plan to assemble the object based on the description.
+   - Skill 3: `order_blocks(plan: str, iter: int)` - Order the blocks for assembly based on the plan.
+   - Skill 4: `decide_position(order: str, iter: int)` - Decide the x, y, yaw for each block based on the order. This populates the internal block list and positions.
+   - Skill 5: `make_structure(positions: json)` - Build the structure in simulation using the decided positions.
+   - Skill 6: `get_structure_image()` - Get an isometric image of the current structure in simulation.
+   - Skill 7: `refine_structure(blocks: list)` - Attempt to refine and stabilize the current block structure. Requires the blocks list as parameter.
+   - Skill 8: `save_structure()` - Save the final, stable structure. No parameters needed.
+   - Skill 9: `llm_query(query: str)` - Ask a question about an image (e.g., to clarify object features or assess design).
+   - Skill 10: Logical reasoning (e.g., conditional checks, math operations) to refine the design and the block order. This is a general capability.
+   - Skill 11: Output the final design. This is an action, usually involving `save_structure()` and then stating 'Return to user'.
+   - Skill 12: `get_structure_info(iter: int)` - Get detailed information and guesses about what the structure resembles.
+   - Skill 13: `get_structure_rating(iter: int)` - Get the rating of the structure on a scale of 1-5.
+
 ** Important instructions **:
 1. Do not repeat your actions!. After receiving the response from the Observer agent, diversify your next subgoal to get more information.
 2. Read over the user request, Observer ouputs and context provided and output <thought> tags to indicate your thought, <plan> tags to indicate your plan.
-3. Single Output: The final step in the plan must be return multiple grasp poses. Your final answer should be solely the optimal grasp pose rectangle for the target object.
+3. Your goal is to create a stable block structure. Once the design is satisfactory and stable, the plan should involve using save_structure() and then stating 'Return to user' as the final plan step. The Coder will then return the final design data.
 4. No Assumptions: If the image or text prompt is unclear, rely on the available skills to gather additional information rather than making unverified guesses.
-5. Try to use function find with general prompt instead of proper noun to make the function more general and less prone to error. For example:
-    - If user prompt uses proper nound like "Find Kleenex box", let first find the attribute of the Kleenex box using llm_query, then use the attribute to find the object in the image (details in the example below).
-6. When the object design is complete, your plan should be stop and return to the user. The plan is fix to "Return to user".
+5. When the object design is complete, your plan should be stop and return to the user. The plan is fix to "Return to user".
 
 **Available blocks**:
 {available_blocks}
@@ -62,24 +62,25 @@ Planner:
 Step 1: Get the general description of the tree.
 Step 2: Plan which blocks to use to represent the tree.
 Step 3: Decide the position of the blocks to assemble the tree.
-Step 4: Return the json format of the design.
+Step 4: Return the blocks position.
 </plan>
 
 Coder:
 <code>
-def execute_command("tree"):
-    isometric_image = IsometricImage("tree")
-    structure_dir = isometric_image.structure_dir
-    #Step 1: Get the general description of the tree.
-    description = isometric_image.describe_object(structure_dir, 0)
-    #Step 2: Plan which blocks to use to represent the tree.
-    plan = isometric_image.make_plan(description, structure_dir, 0)
-    #Step 3: Decide the position of the blocks to assemble the tree.
-    order = isometric_image.order_blocks(structure_dir, plan, 0)
-    position = isometric_image.decide_position(structure_dir, order, 0)
-    #Step 4: Return the json format of the design.
-    return position
-Observer: The return position and order of the blocks are follow the right forma
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    tree = IsometricImage(object_name, feed_back_image)
+    # Step 1: Get the general description of the tree
+    description = tree.describe_object(iter=0)
+    # Step 2: Plan which blocks to use to represent the tree
+    plan = tree.make_plan(description, iter=0)
+    # Step 3: Decide the position of the blocks to assemble the tree
+    order = tree.order_blocks(plan, iter=0)
+    positions = tree.decide_position(order, iter=0)
+    # Step 4: Return the blocks position
+    return {"positions": positions}
+</code>
+Observer: The return position and order of the blocks are follow the right format.
 
 <round> 2 </round>
 Planner:
@@ -93,34 +94,80 @@ Step 4: Return the position after refining.
 
 Coder:
 <code>
-def execute_command("tree"):
-    isometric_image = IsometricImage("tree")
-    structure_dir = isometric_image.structure_dir
-    #Step 1: Place the blocks in the simulation follow the order and position.
-    isometric_image.make_structure(structure_dir)
-    #Step 2: Get the image of the design.
-    image = isometric_image.get_structure_image()
-    #Step 3: Refine the structure by checking the stability of the tree.
-    stability = isometric_image.refine_structure(image)
-    #Step 4: Return the position after refining.
-    return positions
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure again (or pass state somehow)
+    tree = IsometricImage(object_name, feed_back_image)
+    # Recreate the positions (in real scenario, would load from previous state)
+    description = tree.describe_object(iter=1)
+    plan = tree.make_plan(description, iter=1)
+    order = tree.order_blocks(plan, iter=1)
+    positions = tree.decide_position(order, iter=1)
+    
+    # Step 1: Place the blocks in the simulation
+    tree.make_structure(positions)
+    # Step 2: Get the image of the design
+    image = tree.get_structure_image()
+    # Step 3: Refine the structure by checking stability
+    tree.refine_structure(tree.blocks)
+    # Step 4: Return the updated positions
+    return {"positions": tree.positions, "image": image}
 </code>
-Observer: The structure is stable and valid.
+Observer: The structure is stable.
 
 <round> 3 </round>
 Planner:
-<thought> The structure is stable and valid. We need to return the image of the design and the json format of the design to the user. </thought>
-<plan> Return to user. </plan>
+<thought> The structure is stable. We need to check the information of the structure and the rating of the structure to ensure the design is valid. </thought>
+<plan>
+Step 1: Get the information of the structure.
+Step 2: Get the rating of the structure.
+Step 3: Return the information and the rating of the structure.
+</plan>
 
 Coder:
 <code>
-def execute_command("tree"):
-    isometric_image = IsometricImage("tree")
-    isometric_image.save_structure(isometric_image.structure_dir)
-    return isometric_image.positions
+def execute_command(object_name, feed_back_image):
+    # Initialize and rebuild structure to current state
+    tree = IsometricImage(object_name, feed_back_image)
+    description = tree.describe_object(iter=2)
+    plan = tree.make_plan(description, iter=2)
+    order = tree.order_blocks(plan, iter=2)
+    positions = tree.decide_position(order, iter=2)
+    tree.make_structure(positions)
+    
+    # Step 1: Get the information of the structure
+    info = tree.get_structure_info(iter=2)
+    # Step 2: Get the rating of the structure
+    rating = tree.get_structure_rating(iter=2)
+    # Step 3: Return the information and the rating
+    return {"info": info, "rating": rating}
 </code>
-Observer: The structure is saved in the structure_dir.
+Observer: The structure is valid.
 
+<round> 4 </round>
+Planner:
+<thought> The design is valid. We need to save and return the design to the user. </thought>
+<plan>
+Step 1: Save the structure.
+Step 2: Return to user.
+</plan>
+
+Coder:
+<code>
+def execute_command(object_name, feed_back_image):
+    # Initialize and rebuild final structure
+    tree = IsometricImage(object_name, feed_back_image)
+    description = tree.describe_object(iter=3)
+    plan = tree.make_plan(description, iter=3)
+    order = tree.order_blocks(plan, iter=3)
+    positions = tree.decide_position(order, iter=3)
+    tree.make_structure(positions)
+    
+    # Step 1: Save the structure
+    tree.save_structure()
+    # Step 2: Return final positions to user
+    return {"status": "Design saved", "positions": tree.positions}
+</code>
+Observer: The design is saved in the structure_dir.
 
 --- END EXAMPLE1 ---
 
@@ -133,24 +180,24 @@ Planner:
 Step 1: Get the general description of the letter T.
 Step 2: Plan which blocks to use to represent the letter T. 
 Step 3: Decide the position of the blocks to assemble the letter T.
-Step 4: Return the json format of the design.
+Step 4: Return the blocks position in json format.
 </plan>
 
 Coder:
 <code>
-def execute_command("letter T"):
-    letter = IsometricImage("letter T")
-    #Step 1: Get the general description of the letter T.
-    description = letter.describe_object()
-    #Step 2: Plan which blocks to use to represent the letter T.
-    plan = letter.make_plan()
-    #Step 3: Decide the position of the blocks to assemble the letter T.
-    order = letter.order_blocks()
-    position = letter.decide_position()
-    #Step 4: Return the json format of the design.
-    return position
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    letter_t = IsometricImage(object_name, feed_back_image)
+    # Step 1: Get the general description
+    description = letter_t.describe_object(iter=0)
+    # Step 2: Plan which blocks to use
+    plan = letter_t.make_plan(description, iter=0)
+    # Step 3: Decide the position of the blocks
+    order = letter_t.order_blocks(plan, iter=0)
+    positions = letter_t.decide_position(order, iter=0)
+    # Step 4: Return the blocks position in json format
+    return {"positions": positions}
 </code>
-
 Observer: The return position and order of the blocks are follow the right format.
 
 <round> 2 </round>
@@ -165,32 +212,82 @@ Step 4: Return the position after refining.
 
 Coder:
 <code>
-def execute_command("letter T"):
-    letter = IsometricImage("letter T")
-    #Step 1: Place the blocks in the simulation follow the order and position.
-    letter.make_structure()
-    #Step 2: Get the image of the design.
-    image = letter.get_structure_image()
-    #Step 3: Refine the structure by checking the stability of the letter T.
-    letter.refine_structure(image)
-    #Step 4: Return the position after refining.
-    return positions
+def execute_command(object_name, feed_back_image):
+    # Initialize the structure
+    letter_t = IsometricImage(object_name, feed_back_image)
+    # Recreate the positions
+    description = letter_t.describe_object(iter=1)
+    plan = letter_t.make_plan(description, iter=1)
+    order = letter_t.order_blocks(plan, iter=1)
+    positions = letter_t.decide_position(order, iter=1)
+    
+    # Step 1: Place the blocks in the simulation
+    letter_t.make_structure(positions)
+    # Step 2: Get image
+    image = letter_t.get_structure_image()
+    # Step 3: Refine structure
+    letter_t.refine_structure(letter_t.blocks)
+    # Step 4: Return updated positions
+    return {"positions": letter_t.positions, "is_stable": True}
 </code>
 Observer: The structure is unstable at first but after refining, the structure is stable.
 
 <round> 3 </round>
 Planner:
-<thought> The structure is stable and valid. We need to return the image of the design and the json format of the design to the user. </thought>
-<plan> Return to user. </plan>
+<thought> The structure is stable. We need to check the information of the structure and the rating of the structure to ensure the design is valid. </thought>
+<plan>
+Step 1: Get the information of the structure.
+Step 2: Get the rating of the structure.
+Step 3: Return the information and the rating of the structure.
+</plan>
 
 Coder:
 <code>
-def execute_command("tree"):
-    isometric_image = IsometricImage("tree")
-    isometric_image.save_structure(isometric_image.structure_dir)
-    return isometric_image.positions
+def execute_command(object_name, feed_back_image):
+    # Initialize and rebuild structure
+    letter_t = IsometricImage(object_name, feed_back_image)
+    description = letter_t.describe_object(iter=2)
+    plan = letter_t.make_plan(description, iter=2)
+    order = letter_t.order_blocks(plan, iter=2)
+    positions = letter_t.decide_position(order, iter=2)
+    letter_t.make_structure(positions)
+    letter_t.refine_structure(letter_t.blocks)
+    
+    # Step 1: Get the information of the structure
+    info = letter_t.get_structure_info(iter=2)
+    # Step 2: Get the rating of the structure
+    rating = letter_t.get_structure_rating(iter=2)
+    # Step 3: Return the information and rating
+    return {"info": info, "rating": rating}
 </code>
-Observer: The structure is saved in the structure_dir.
+Observer: The structure is valid.
+
+<round> 4 </round>
+Planner:
+<thought> The design is valid. We need to save and return the design to the user. </thought>
+<plan>
+Step 1: Save the structure.
+Step 2: Return to user.
+</plan>
+
+Coder:
+<code>
+def execute_command(object_name, feed_back_image):
+    # Initialize and rebuild final structure
+    letter_t = IsometricImage(object_name, feed_back_image)
+    description = letter_t.describe_object(iter=3)
+    plan = letter_t.make_plan(description, iter=3)
+    order = letter_t.order_blocks(plan, iter=3)
+    positions = letter_t.decide_position(order, iter=3)
+    letter_t.make_structure(positions)
+    letter_t.refine_structure(letter_t.blocks)
+    
+    # Step 1: Save the structure
+    letter_t.save_structure()
+    # Step 2: Return to user
+    return {"status": "Design saved", "positions": letter_t.positions}
+</code>
+Observer: The design is saved in the structure_dir.
 
 --- END EXAMPLE2 ---
 

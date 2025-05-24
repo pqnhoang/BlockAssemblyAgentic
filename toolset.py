@@ -127,12 +127,11 @@ class IsometricImage:
         self.available_blocks = process_available_blocks(available_blocks)
         self.blocks = None
         self.positions = None
+        self.structure_image = None
+        self.structure = None
         # # Initialize variables
-        # self.structure = Structure()
-        # self.description = None
-        # self.plan = None
-        # self.stacking_order = None
-        # self.positions = None
+        self.main_llm_context: List[Dict] = []
+        self.eval_llm_context: List[Dict] = []
         
     def simple_query(self, question: str):
         """Returns the answer to a basic question asked about the image. If no question is provided, returns the answer
@@ -227,25 +226,29 @@ class IsometricImage:
         return response_message
     
 
-    def describe_object(self, structure_dir, iter=0):
+    def describe_object(self, iter=0):
         """
         Describe the object in the image.
         """
+
         prompt = f"""
         I'm working on constructing a block tower that represents a(n) {self.object_name}. I need a concise, qualitative description of the design that captures its essence in a minimalistic style. The design should focus on simplicity, avoiding unnecessary complexity while still conveying the key features of a(n) {self.object_name}. The description should highlight the overall structure and proportions, emphasizing how the block arrangement reflects the object's shape and form. However the design shouldn't be too large, too wide, or too tall.
         """.strip()
-        response, _ = prompt_with_caching(
+        self.main_llm_context = []
+
+        response, updated_context = prompt_with_caching(
             prompt,
-            [],
-            structure_dir,
+            self.main_llm_context,
+            self.structure_dir,
             "description",
             cache=True,
             temeprature=TEMPERATURE,
             i=iter,
     )
+        self.main_llm_context = updated_context
         return response
     
-    def make_plan(self, description, structure_dir, iter=0):
+    def make_plan(self, description, iter=0):
         """
         Make a plan to assemble the object.
         """
@@ -281,17 +284,18 @@ class IsometricImage:
         Decide the colors of each block to look like a {self.object_name}. Color is an rgba array with values from 0 to 1.
         """
         
-        response, main_context = prompt_with_caching(
+        response,updated_context = prompt_with_caching(
             prompt,
-            [],
-            structure_dir,
+            self.main_llm_context,
+            self.structure_dir,
             "main_plan",
             cache=True,
             temeprature=TEMPERATURE,
             i=iter,
     )
+        self.main_llm_context = updated_context
         return response
-    def order_blocks(self, structure_dir, plan, iter=0):
+    def order_blocks(self, plan, iter=0):
         """
         Order the blocks in the plan.
         """
@@ -305,17 +309,18 @@ class IsometricImage:
         """.strip()
 
         
-        response, main_context = prompt_with_caching(
+        response, updated_context = prompt_with_caching(
             prompt,
-            [],
-            structure_dir,
+            self.main_llm_context,
+            self.structure_dir,
             "order_plan",
             cache=True,
             temeprature=TEMPERATURE,
             i=iter,
     )
+        self.main_llm_context = updated_context
         return response
-    def decide_position(self, structure_dir, order, iter=0):
+    def decide_position(self, order, iter=0):
         prompt = f"""
         With the stacking order determined {order}, I now need to know the x and y positions, as well as the yaw angle (in degrees), for each block to build a {self.object_name} structure.
 
@@ -357,22 +362,23 @@ class IsometricImage:
             ]
         )}
         """
-        response, main_context = prompt_with_caching(
+        response, updated_context = prompt_with_caching(
             prompt,
-            [],
-            structure_dir,
+            self.main_llm_context,
+            self.structure_dir,
             "decide_position",
             cache=True,
             temeprature=TEMPERATURE,
             i=iter,
         )
+        self.main_llm_context = updated_context
         json_output = get_last_json_as_dict(response)
         blocks = blocks_from_json(json_output)
         self.blocks = blocks
         self.positions = json_output
         return json_output
     
-    def get_stability_correction(self, to_build, unstable_block: Block, pos_delta, structure_json, x_img, y_img):
+    def get_stability_correction(self, to_build, unstable_block: Block, pos_delta, structure_json, x_img, y_img, iter=0):
         prompt = [
             f"""
         {markdown_json(structure_json)}
@@ -396,7 +402,7 @@ class IsometricImage:
         """
         ]
         response, stability_context = prompt_with_caching(
-            prompt, [], structure_dir, f"stability_correction_{iter}", cache=True, i=iter
+            prompt, [], self.structure_dir, f"stability_correction_{iter}", cache=True, i=iter
         )
         return response, stability_context
     
@@ -411,6 +417,7 @@ class IsometricImage:
         structure = Structure()
         structure.add_blocks(self.blocks)
         structure.place_blocks(positions)
+        self.structure = structure
         save_to_json(structure.get_json(), f"{structure_dir}/{self.object_name}.json")
         return structure
     
@@ -422,7 +429,7 @@ class IsometricImage:
         isometric_img = get_imgs(keys=["isometric"], axes=True, labels=False)
         img = Image.fromarray(isometric_img)
         img.save(
-            f"{structure_dir}/{self.object_name}_isometric.png"
+            f"{structure_dir}/{self.object_name}/{self.object_name}_isometric.png"
         )
         self.structure_image = img
         return img
@@ -449,7 +456,7 @@ class IsometricImage:
 
         return True, None, None, x_img, y_img
 
-    def refine_structure(self, blocks, pos_delta, x_img, y_img):
+    def refine_structure(self, blocks):
         for i in range(2):
             stable, unstable_block, pos_delta, x_img, y_img = self.stability_check(
                 blocks, debug=True
@@ -470,16 +477,16 @@ class IsometricImage:
             isometric_img = get_imgs(keys=["isometric"], axes=True, labels=False)
             img = Image.fromarray(isometric_img)
             img.save(
-                f"{structure_dir}/{self.object_name}_stability_correction_{iter}_{i}.png"
+                f"{self.structure_dir}/{self.object_name}_stability_correction_{i}.png"
             )
 
-    def save_structure(self, structure_dir):
+    def save_structure(self):
         """
         Save the structure to a JSON file.
         """
         assembly = Assembly(
-            structure=structure,
-            structure_directory=structure_dir,
+            structure=self.structure,
+            structure_directory=self.structure_dir,
             to_build=self.object_name,
             isometric_image=self.feed_back_image,
             available_blocks_json=self.available_blocks,
@@ -490,6 +497,91 @@ class IsometricImage:
         assembly.save_to_structure_dir()
         return assembly
 
+    def get_structure_rating(self, iter=0):
+        prompt = f"""
+        Given your description of the block structure, how well does the structure in the image use blocks to resemble a {self.object_name} considering that the structure is made from  a limited set of toy blocks? Rate the resemblance of the block structure to a {self.object_name} on a scale of 1 to 5 defined by the following:
+            1 - the structure in the image has no resemblance to the intended structure. It's missing all key features and appears incoherent
+            2 - the structure in the image has a small amount of resemblance to the intented structure. It has at least 1 key feature and shows an attempt at the intended structure
+            3 - the structure has clear similarities to the intended structure and appears coherent. It has at least 1 key feature and shows similarities in other ways as well.
+            4 - the structure represents multiple key features of the intended design and shows a decent overall resemblance.
+            5 - the structure in the image is a good block reconstruction of the intended structure, representing multiple key features and showing an overall resemblance to the intended structure.
+
+        Provide a brief explanation of your though process then provide your final response as JSON in the following format:
+        {markdown_json({"rating": 5})}
+        """
+        response, updated_context = prompt_with_caching(
+            prompt,
+            self.eval_llm_context,
+            self.structure_dir,
+            "structure_rating",
+            cache=True,
+            i=iter,
+        )
+        self.eval_llm_context = updated_context
+        return response
+
+    def get_structure_info(self, iter=0):
+        self.eval_llm_context = []
+        prompt = [
+            self.structure_image,
+            f"""
+        I am currently building a structure made out of toy blocks shown in the given image. Describe in detail as much as you can about this image. Please list the top 10 things that the structure most resembles in order of similarity.
+
+        After describing the image in detail and providing some initial thoughts, answer as JSON in the following format providing 10 guesses. Your guesses should mostly be single words like "bottle" and never use adjectives like "toy_bottle". 
+        {
+            markdown_json({"guesses": ["guess_1", "guess_2", "guess_3", "guess_4", "guess_5", "guess_6", "guess_7", "guess_8", "guess_9", "guess_10"]})
+        }
+        """.strip(),
+        ]
+        response, updated_context = prompt_with_caching(
+            prompt,
+            self.eval_llm_context,
+            self.structure_dir,
+            "structure_info",
+            cache=True,
+            i=iter,
+        )
+        self.eval_llm_context = updated_context
+        return response
+    
+    # def _get_ratings(self, assembly: Assembly):
+    #     """
+    #     Populates rating and guesses attribute of assembly input
+    #     """
+    #     to_build_slug = self.object_name
+    #     structure_dir = os.path.join(SAVE_DIR, to_build_slug)
+
+    #     # eval
+    #     prompt = self.get_structure_info()
+    #     response, eval_context = prompt_with_caching(
+    #         prompt, [], structure_dir, "info_eval", cache=True, i=iter
+    #     )
+
+    #     json_guesses = get_last_json_as_dict(response)
+    #     save_to_json(json_guesses, os.path.join(SAVE_DIR, to_build_slug, "guesses.json"))
+
+    #     # get rating
+    #     prompt = self.get_structure_rating()
+    #     response, eval_context = prompt_with_caching(
+    #         prompt, eval_context, structure_dir, "rating_eval", cache=True, i=iter
+    #     )
+
+    #     json_rating = get_last_json_as_dict(response)
+    #     save_to_json(json_rating, os.path.join(SAVE_DIR, to_build_slug, "rating.json"))
+
+    #     return json_guesses["guesses"], json_rating["rating"]
+    # def get_ratings(self, assembly: Assembly):
+    #     """
+    #     Populates rating and guesses attribute of assembly input
+    #     """
+    #     guesses, rating = self._get_ratings(
+    #         assembly.to_build, assembly.isometric_image, iter=assembly.assembly_num
+    #     )
+
+    #     assembly.eval_guesses = guesses
+    #     print(assembly.eval_guesses)
+    #     assembly.eval_rating = rating
+    #     print(assembly.eval_rating)
 if __name__ == "__main__":
     # Initialize pybullet
     if not p.isConnected():
@@ -497,16 +589,20 @@ if __name__ == "__main__":
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
     # Pipeline
-    isometric_image = IsometricImage(object_name="Giraffe", feed_back_image=None)
-    structure_dir = isometric_image.structure_dir
-    description = isometric_image.describe_object(structure_dir, 0)
-    plan = isometric_image.make_plan(description, structure_dir, 0)
-    order = isometric_image.order_blocks(structure_dir, plan, 0)
-    positions = isometric_image.decide_position(structure_dir, order, 0)
+    isometric_image = IsometricImage(object_name="Ceiling Fan", feed_back_image=None)
+    description = isometric_image.describe_object()
+    plan = isometric_image.make_plan(description)
+    order = isometric_image.order_blocks(plan)
+    positions = isometric_image.decide_position(order)
     isometric_image.make_structure(positions)
-    structure = isometric_image.get_structure_image()
-    isometric_image.refine_structure(isometric_image.blocks, [0, 0], None, None)
+    isometric_image.get_structure_image()
+    isometric_image.refine_structure(isometric_image.blocks)
 
     # Save the structure
-    isometric_image.save_structure(structure_dir)
+    isometric_image.save_structure()
+
+    # Get the structure info
+    isometric_image.get_structure_info()
+    isometric_image.get_structure_rating()
     
+    p.disconnect()

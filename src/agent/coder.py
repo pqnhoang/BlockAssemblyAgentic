@@ -11,11 +11,11 @@ import torch
 import base64
 from PIL import Image
 from src.agent.llm import OpenAILLM
-from src.prompt import coder_prompt_v2
+from src.prompt import coder_prompt_v2, coder_prompt_v3
 
 
 class Coder:
-    def __init__(self, coder_prompt: coder_prompt_v2, llm: OpenAILLM, model_name="gpt-4o", max_tokens=1000,
+    def __init__(self, coder_prompt: coder_prompt_v3, llm: OpenAILLM, model_name="gpt-4o", max_tokens=1000,
                  temperature=0, top_p=1.0, frequency_penalty=0.0, presence_penalty=2.0):
         super().__init__()
         self.model_name = model_name
@@ -55,5 +55,5 @@ class Coder:
         return code
     
 if __name__ == "__main__":
-    coder = Coder(coder_prompt_v2, OpenAILLM(api_file="api_key.txt"))
-    print(coder("Step 1: Get the general description of the letter T.\nStep 2: Plan which blocks to use to represent the letter T.\nStep 3: Decide the position of the blocks to assemble the letter T.\nStep 4: Return the json format of the design."))
+    coder = Coder(coder_prompt_v3, OpenAILLM(api_file="api_key.txt"))
+    print(coder("Step 1: Get the general description of the letter T.\nStep 2: Plan which blocks to use to represent the letter T.\nStep 3: Decide the position of the blocks to assemble the letter T.\nStep 4: Return the blocks position in json format."))
