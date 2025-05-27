@@ -53,7 +53,3 @@ class Coder:
         code = '\n'.join(response_message_coder.split('\n')[1:-1]).replace('\n    \n', '\n')
         code = code.replace("```python", "").replace("```", "")
         return code
-    
-if __name__ == "__main__":
-    coder = Coder(coder_prompt_v3, OpenAILLM(api_file="api_key.txt"))
-    print(coder("Step 1: Get the general description of the letter T.\nStep 2: Plan which blocks to use to represent the letter T.\nStep 3: Decide the position of the blocks to assemble the letter T.\nStep 4: Return the blocks position in json format."))

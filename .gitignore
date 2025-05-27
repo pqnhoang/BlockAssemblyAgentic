@@ -6,7 +6,6 @@ src/agent/api_key.txt
 .vscode/extensions.json
 gpt_caching/
 final_results/
-somo/
 poetry.lock
 api_key.txt
 .env

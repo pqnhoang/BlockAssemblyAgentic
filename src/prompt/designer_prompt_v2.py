@@ -67,50 +67,44 @@ Step 4: Return the blocks position.
 
 Coder:
 <code>
-def execute_command(object_name, feed_back_image):
+def execute_command(object_name, positions, structure_img):
     # Initialize the structure
-    tree = IsometricImage(object_name, feed_back_image)
+    tree = IsometricImage(object_name, positions, structure_img)
     # Step 1: Get the general description of the tree
-    description = tree.describe_object(iter=0)
+    description = tree.describe_object()
     # Step 2: Plan which blocks to use to represent the tree
-    plan = tree.make_plan(description, iter=0)
+    plan = tree.make_plan(description)
     # Step 3: Decide the position of the blocks to assemble the tree
-    order = tree.order_blocks(plan, iter=0)
-    positions = tree.decide_position(order, iter=0)
+    order = tree.order_blocks(plan)
+    positions = tree.decide_position(order)
     # Step 4: Return the blocks position
     return {"positions": positions}
 </code>
-Observer: The return position and order of the blocks are follow the right format.
+Observer: The returned positions data is in the correct format. The structure includes a cuboid-shaped trunk, and three canopy layers indicating an assembly resembling a tree. Currently focusing on ensuring correct block arrangement.
 
 <round> 2 </round>
 Planner:
-<thought> Now we have the plan and the order of the blocks. We need to place the blocks in the simulation follow the order and position to check the stability of the tree. </thought>
+<thought> Now we have the plan, the order and the position of the blocks. We need to place the blocks in the simulation follow the order and position to check the stability of the tree. </thought>
 <plan> 
 Step 1: Place the blocks in the simulation follow the order and position.
-Step 2: Get the image of the design.
-Step 3: Refine the structure by checking the stability of the tree.
+Step 2: Refine the structure by checking the stability of the tree.
+Step 3: Get the image of the design after refining.
 Step 4: Return the position after refining.
 </plan>
 
 Coder:
 <code>
-def execute_command(object_name, feed_back_image):
-    # Initialize the structure again (or pass state somehow)
-    tree = IsometricImage(object_name, feed_back_image)
-    # Recreate the positions (in real scenario, would load from previous state)
-    description = tree.describe_object(iter=1)
-    plan = tree.make_plan(description, iter=1)
-    order = tree.order_blocks(plan, iter=1)
-    positions = tree.decide_position(order, iter=1)
-    
+def execute_command(object_name, positions, structure_img):
+    # Initialize and rebuild structure
+    tree = IsometricImage(object_name, positions, structure_img)
     # Step 1: Place the blocks in the simulation
-    tree.make_structure(positions)
-    # Step 2: Get the image of the design
+    tree.make_structure(tree.positions)
+    # Step 2: Refine the structure. MUST use .blocks and capture the return value.
+    stable = tree.refine_structure(tree.blocks)
+    # Step 3: Get the image of the design
     image = tree.get_structure_image()
-    # Step 3: Refine the structure by checking stability
-    tree.refine_structure(tree.blocks)
     # Step 4: Return the updated positions
-    return {"positions": tree.positions, "image": image}
+    return {"positions": tree.positions, "is_stable": stable, "image": image}
 </code>
 Observer: The structure is stable.
 
@@ -118,28 +112,27 @@ Observer: The structure is stable.
 Planner:
 <thought> The structure is stable. We need to check the information of the structure and the rating of the structure to ensure the design is valid. </thought>
 <plan>
-Step 1: Get the information of the structure.
-Step 2: Get the rating of the structure.
-Step 3: Return the information and the rating of the structure.
+Step 1: Make the structure from the positions.
+Step 2: Get the information of the structure.
+Step 3: Get the rating of the structure.
+Step 4: Save the structure.
 </plan>
 
 Coder:
 <code>
-def execute_command(object_name, feed_back_image):
-    # Initialize and rebuild structure to current state
-    tree = IsometricImage(object_name, feed_back_image)
-    description = tree.describe_object(iter=2)
-    plan = tree.make_plan(description, iter=2)
-    order = tree.order_blocks(plan, iter=2)
-    positions = tree.decide_position(order, iter=2)
-    tree.make_structure(positions)
-    
-    # Step 1: Get the information of the structure
-    info = tree.get_structure_info(iter=2)
-    # Step 2: Get the rating of the structure
-    rating = tree.get_structure_rating(iter=2)
-    # Step 3: Return the information and the rating
-    return {"info": info, "rating": rating}
+def execute_command(object_name, positions, structure_img):
+    # Initialize structure
+    tree = IsometricImage(object_name, positions, structure_img)
+    # Step 1: Make the structure from the positions
+    tree.make_structure(tree.positions)
+    # Step 2: Get the information of the structure
+    info = tree.get_structure_info()
+    # Step 3: Get the rating of the structure
+    rating = tree.get_structure_rating()
+    # Step 4: Save the structure
+    tree.save_structure()
+    #Return the information and the rating
+    return {"rating": rating, "info": info}
 </code>
 Observer: The structure is valid.
 
@@ -147,27 +140,8 @@ Observer: The structure is valid.
 Planner:
 <thought> The design is valid. We need to save and return the design to the user. </thought>
 <plan>
-Step 1: Save the structure.
-Step 2: Return to user.
+Step 1: Return to user.
 </plan>
-
-Coder:
-<code>
-def execute_command(object_name, feed_back_image):
-    # Initialize and rebuild final structure
-    tree = IsometricImage(object_name, feed_back_image)
-    description = tree.describe_object(iter=3)
-    plan = tree.make_plan(description, iter=3)
-    order = tree.order_blocks(plan, iter=3)
-    positions = tree.decide_position(order, iter=3)
-    tree.make_structure(positions)
-    
-    # Step 1: Save the structure
-    tree.save_structure()
-    # Step 2: Return final positions to user
-    return {"status": "Design saved", "positions": tree.positions}
-</code>
-Observer: The design is saved in the structure_dir.
 
 --- END EXAMPLE1 ---
 
@@ -185,16 +159,16 @@ Step 4: Return the blocks position in json format.
 
 Coder:
 <code>
-def execute_command(object_name, feed_back_image):
+def execute_command(object_name, positions, structure_img):
     # Initialize the structure
-    letter_t = IsometricImage(object_name, feed_back_image)
+    letter_t = IsometricImage(object_name, positions, structure_img)
     # Step 1: Get the general description
-    description = letter_t.describe_object(iter=0)
+    description = letter_t.describe_object()
     # Step 2: Plan which blocks to use
-    plan = letter_t.make_plan(description, iter=0)
+    plan = letter_t.make_plan(description)
     # Step 3: Decide the position of the blocks
-    order = letter_t.order_blocks(plan, iter=0)
-    positions = letter_t.decide_position(order, iter=0)
+    order = letter_t.order_blocks(plan)
+    positions = letter_t.decide_position(order)
     # Step 4: Return the blocks position in json format
     return {"positions": positions}
 </code>
@@ -205,60 +179,53 @@ Planner:
 <thought> Now we have the plan and the order of the blocks. We need to place the blocks in the simulation follow the order and position to check the stability of the letter T. </thought>
 <plan> 
 Step 1: Place the blocks in the simulation follow the order and position.
-Step 2: Get the image of the design.
-Step 3: Refine the structure by checking the stability of the letter T.
+Step 2: Refine the structure by checking the stability of the letter T.
+Step 3: Get the image of the design after refining.
 Step 4: Return the position after refining.
 </plan>
 
 Coder:
 <code>
-def execute_command(object_name, feed_back_image):
-    # Initialize the structure
-    letter_t = IsometricImage(object_name, feed_back_image)
-    # Recreate the positions
-    description = letter_t.describe_object(iter=1)
-    plan = letter_t.make_plan(description, iter=1)
-    order = letter_t.order_blocks(plan, iter=1)
-    positions = letter_t.decide_position(order, iter=1)
-    
+def execute_command(object_name, positions, structure_img):
+    # Initialize and rebuild structure
+    letter_t = IsometricImage(object_name, positions, structure_img)
     # Step 1: Place the blocks in the simulation
-    letter_t.make_structure(positions)
-    # Step 2: Get image
+    letter_t.make_structure(self.positions)
+    # Step 2: Refine the structure. MUST use .blocks and capture the return value.
+    stable = letter_t.refine_structure(letter_t.blocks)
+    # Step 3: Get the image of the design
     image = letter_t.get_structure_image()
-    # Step 3: Refine structure
-    letter_t.refine_structure(letter_t.blocks)
     # Step 4: Return updated positions
-    return {"positions": letter_t.positions, "is_stable": True}
+    return {"positions": letter_t.positions, "is_stable": stable, "image": image}
 </code>
-Observer: The structure is unstable at first but after refining, the structure is stable.
+Observer: The structure is stable. The stability check indicates that all blocks are properly positioned and supported. The design is ready for the next stage.
 
 <round> 3 </round>
 Planner:
 <thought> The structure is stable. We need to check the information of the structure and the rating of the structure to ensure the design is valid. </thought>
 <plan>
-Step 1: Get the information of the structure.
-Step 2: Get the rating of the structure.
-Step 3: Return the information and the rating of the structure.
+Step 1: Make the structure from the positions.
+Step 2: Get the information of the structure.
+Step 3: Get the rating of the structure.
+Step 4: Save the structure.
 </plan>
 
 Coder:
 <code>
-def execute_command(object_name, feed_back_image):
-    # Initialize and rebuild structure
-    letter_t = IsometricImage(object_name, feed_back_image)
-    description = letter_t.describe_object(iter=2)
-    plan = letter_t.make_plan(description, iter=2)
-    order = letter_t.order_blocks(plan, iter=2)
-    positions = letter_t.decide_position(order, iter=2)
-    letter_t.make_structure(positions)
-    letter_t.refine_structure(letter_t.blocks)
-    
-    # Step 1: Get the information of the structure
-    info = letter_t.get_structure_info(iter=2)
-    # Step 2: Get the rating of the structure
-    rating = letter_t.get_structure_rating(iter=2)
-    # Step 3: Return the information and rating
+def execute_command(object_name, positions, structure_img):
+    # Initialize structure
+    letter_t = IsometricImage(object_name, positions, structure_img)
+    # Step 1: Make the structure from the positions
+    letter_t.make_structure(letter_t.positions)
+    # Step 2: Get the information of the structure
+    info = letter_t.get_structure_info()
+    # Step 3: Get the rating of the structure
+    rating = letter_t.get_structure_rating()
+    # Step 4: Save the structure
+    letter_t.save_structure()
+    # Return the information and rating
     return {"info": info, "rating": rating}
+
 </code>
 Observer: The structure is valid.
 
@@ -266,28 +233,8 @@ Observer: The structure is valid.
 Planner:
 <thought> The design is valid. We need to save and return the design to the user. </thought>
 <plan>
-Step 1: Save the structure.
-Step 2: Return to user.
+Step 1: Return to user.
 </plan>
-
-Coder:
-<code>
-def execute_command(object_name, feed_back_image):
-    # Initialize and rebuild final structure
-    letter_t = IsometricImage(object_name, feed_back_image)
-    description = letter_t.describe_object(iter=3)
-    plan = letter_t.make_plan(description, iter=3)
-    order = letter_t.order_blocks(plan, iter=3)
-    positions = letter_t.decide_position(order, iter=3)
-    letter_t.make_structure(positions)
-    letter_t.refine_structure(letter_t.blocks)
-    
-    # Step 1: Save the structure
-    letter_t.save_structure()
-    # Step 2: Return to user
-    return {"status": "Design saved", "positions": letter_t.positions}
-</code>
-Observer: The design is saved in the structure_dir.
 
 --- END EXAMPLE2 ---
 

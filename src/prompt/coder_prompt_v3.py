@@ -19,15 +19,15 @@ class IsometricImage:
     ----------
     object_name : str
         The name of the object to be built.
-    feed_back_image : array_like
-        An array-like of the cropped image taken from the original image.
+    positions : str | dict
+        The positions of the blocks in the structure.
+    structure_img : Image.Image | str
+        The isometric image of the structure.
     available_blocks_path : str, optional
         Path to the JSON file containing available blocks. If None, uses default path.
     
     Methods
     -------
-    simple_query(question: str) -> str
-        Returns the answer to a basic question asked about the image.
     llm_query(question: str) -> str
         Returns the answer to a question asked about the image using the LLM model.
     describe_object(iter: int) -> str
@@ -169,7 +169,7 @@ Write a function using Python and the IsometricImage class (above) that could be
 
 Plan at this step: {plan}
 ** Expected format output begin with **
-def execute_command(object_name, feed_back_image):
+def execute_command(object_name, positions, structure_img):
 '''
 
 EXAMPLES_CODER = '''
@@ -177,136 +177,104 @@ EXAMPLES_CODER = '''
 Plan:
 Step 1: Get the general description of the table.
 Step 2: Plan which blocks to use to represent the table.
+Step 3: Get the general description of the table.
+Step 4: Plan which blocks to use to represent the table.
 A: ```
-def execute_command(object_name, feed_back_image):
+def execute_command(object_name, positions, structure_img):
     # Initialize the structure
-    table = IsometricImage(object_name, feed_back_image)
+    table = IsometricImage(object_name, positions, structure_img)
     # Step 1: Get the general description of the table.
-    description = table.describe_object(iter=0)
+    description = table.describe_object()
     # Step 2: Plan which blocks to use to represent the table.
-    plan = table.make_plan(description, iter=0)t
-    return {"plan": plan}
+    plan = table.make_plan(description)
+    # Step 3: Get the general description of the table.
+    order = table.order_blocks(plan)
+    # Step 4: Plan which blocks to use to represent the table.
+    positions = table.decide_position(order)
+    return {"positions": positions}
 ```
 
 ### Example 2
 Plan:
-Step 1: Decide the position of the blocks to assemble the table.
-Step 2: Return the blocks position.
+Step 1: Place the blocks in the simulation follow the order and position.
+Step 2: Refine the design to make it stable.
+Step 3: Get the isometric image of the structure.
+Step 4: Save and return the structure.
 A: ```
-def execute_command(object_name, feed_back_image):
-    # Initialize the structure
-    table = IsometricImage(object_name, feed_back_image)
-    # Get description and plan first
-    description = table.describe_object(iter=0)
-    plan = table.make_plan(description, iter=0)
-    # Step 1: Decide the position of the blocks to assemble the table.
-    order = table.order_blocks(plan, iter=0)
-    positions = table.decide_position(order, iter=0)
-    # Step 2: Return the blocks position.
-    return {"positions": positions}
+def execute_command(object_name, positions, structure_img):
+    # Initialize structure
+    table = IsometricImage(object_name, positions, structure_img)
+    # Step 1: Place the blocks in the simulation follow the order and position.
+    table.make_structure(table.positions, structure_img)
+    # Step 2: Refine the structure. MUST use .blocks and capture the return value.
+    stable = table.refine_structure(table.blocks)
+    # Step 3: Get the isometric image of the structure.
+    img = table.get_structure_image()
+    # Step 4: Save and return the structure.
+    table.save_structure()
+    return {"positions": table.positions, "is_stable": stable, "image": img}
 ```
 
 ### Example 3
-Plan:
-Step 1: Place the blocks in the simulation follow the order and position.
-Step 2: Get the isometric image of the structure.
-Step 3: Refine the design to make it stable.
-Step 4: Save and return the structure.
-A: ```
-def execute_command(object_name, feed_back_image):
-    # Initialize structure
-    table = IsometricImage(object_name, feed_back_image)
-    # Get description, plan and positions
-    description = table.describe_object(iter=0)
-    plan = table.make_plan(description, iter=0)
-    order = table.order_blocks(plan, iter=0)
-    positions = table.decide_position(order, iter=0)
-    # Step 1: Place the blocks in the simulation follow the order and position.
-    table.make_structure(positions)
-    # Step 2: Get the isometric image of the structure.
-    img = table.get_structure_image()
-    # Step 3: Refine the design to make it stable.
-    table.refine_structure(table.blocks)
-    # Step 4: Save and return the structure.
-    table.save_structure()
-    return {"positions": table.positions, "image": img}
-```
-
-### Example 4
 Plan:
 Step 1: Get the general description of the letter U.
 Step 2: Plan which blocks to use to represent the letter U.
 Step 3: Decide the position of the blocks to assemble the letter U.
 Step 4: Return the blocks position.
 A: ```
-def execute_command(object_name, feed_back_image):
+def execute_command(object_name, positions, structure_img):
     # Initialize the structure
-    letter = IsometricImage(object_name, feed_back_image)
+    letter = IsometricImage(object_name, positions, structure_img)
     # Step 1: Get the general description of the letter U.
-    description = letter.describe_object(iter=0)
+    description = letter.describe_object()
     # Step 2: Plan which blocks to use to represent the letter U.
-    plan = letter.make_plan(description, iter=0)
+    plan = letter.make_plan(description)
     # Step 3: Decide the position of the blocks to assemble the letter U.
-    order = letter.order_blocks(plan, iter=0)
-    positions = letter.decide_position(order, iter=0)
+    order = letter.order_blocks(plan)
+    positions = letter.decide_position(order)
     # Step 4: Return the blocks position.
     return {"positions": positions}
 ```
 
-### Example 5
+### Example 4
 Plan:
 Step 1: Place the blocks in the simulation follow the order and position.
-Step 2: Get the isometric image of the structure.
-Step 3: Check stability of the structure.
+Step 2: Refine the structure to make it stable.
+Step 3: Get the isometric image of the structure.
 Step 4: Save the structure and return success status.
 A: ```
-def execute_command(object_name, feed_back_image):
+def execute_command(object_name, positions, structure_img):
     # Initialize the structure
-    letter = IsometricImage(object_name, feed_back_image)
-    # Complete workflow to get positions
-    description = letter.describe_object(iter=0)
-    plan = letter.make_plan(description, iter=0)
-    order = letter.order_blocks(plan, iter=0)
-    positions = letter.decide_position(order, iter=0)
+    letter = IsometricImage(object_name, positions, structure_img)
     # Step 1: Place the blocks in the simulation follow the order and position.
-    letter.make_structure(positions)
-    # Step 2: Get the isometric image of the structure.
+    letter.make_structure(letter.positions)
+    # Step 2: Refine the structure. MUST use .blocks and capture the return value.
+    stable = letter.refine_structure(letter.blocks)
+    # Step 3: Get the isometric image of the structure.
     img = letter.get_structure_image()
-    # Step 3: Check stability of the structure.
-    is_stable, unstable_block, pos_delta, x_img, y_img = letter.stability_check(letter.blocks)
     # Step 4: Save the structure and return success status.
     letter.save_structure()
-    return {"positions": letter.positions, "is_stable": is_stable}
+    return {"positions": letter.positions, "is_stable": stable, "image": img}
 ```
 
-### Example 6
+### Example 5
 Plan:
-Step 1: Build complete structure with refinement.
-Step 2: Get structure rating.
-Step 3: Get structure info and guesses.
-Step 4: Return complete analysis.
+Step 1: Make the structure from the positions.
+Step 2: Get the information of the letter U.
+Step 3: Get the rating of the letter U that was built.
+Step 4: Save the structure.
 A: ```
-def execute_command(object_name, feed_back_image):
+def execute_command(object_name, positions, structure_img):
     # Initialize the structure
-    structure = IsometricImage(object_name, feed_back_image)
-    # Step 1: Build complete structure with refinement
-    description = structure.describe_object(iter=0)
-    plan = structure.make_plan(description, iter=0)
-    order = structure.order_blocks(plan, iter=0)
-    positions = structure.decide_position(order, iter=0)
-    structure.make_structure(positions)
-    img = structure.get_structure_image()
-    structure.refine_structure(structure.blocks)
-    # Step 2: Get structure rating
-    rating_info = structure.get_structure_rating(iter=0)
-    # Step 3: Get structure info and guesses
-    structure_info = structure.get_structure_info(iter=0)
-    # Step 4: Return complete analysis
+    letter = IsometricImage(object_name, positions, structure_img)
+    # Step 1: Make the structure from the positions.
+    letter.make_structure(letter.positions)
+    # Step 2: Get the guesses information of letter U.
+    structure_info = structure.get_structure_info()
+    # Step 2: Get the rating of the structure U that was built.
+    rating_info = structure.get_structure_rating()
+    # Step 3: Save the structure
     structure.save_structure()
-    return {
-        "positions": structure.positions,
-        "rating": rating_info,
-        "info": structure_info
-    }
+    return {"rating": rating_info,"info": structure_info}
 ```
 '''

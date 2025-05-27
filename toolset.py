@@ -8,12 +8,14 @@ import numpy as np
 import requests
 import json
 import sys
-from typing import List
 import pybullet as p
 import pybullet_data
+from dotenv import load_dotenv
 from typing import Dict, List
+from pathlib import Path
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 SAVE_DIR = os.path.join(BASE_PATH, "gpt_caching")
+POSITIONS_DIR = os.path.join(BASE_PATH, "final_results/positions")
 sys.path.append(BASE_PATH)
 
 #DESIGN CLASS
@@ -27,14 +29,20 @@ from src.prompt.prompt import prompt_with_caching
 
 query_image_path = os.path.join(BASE_PATH, "imgs/block.png")
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
+# Load environment variables from .env file
+load_dotenv()
 
 ## OpenAI API
-api_file = os.path.join(BASE_PATH, 'api_key.txt')
-with open(api_file) as f:
-    api_key = f.readline().splitlines()
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("OPENAI_API_KEY not found in .env file or environment variables.")
+OPENAI_CLIENT = OpenAI(api_key=api_key)
 OPENAI_CLIENT = OpenAI(api_key=api_key[0])
 EMBEDDING_MODEL = "text-embedding-ada-002"
 TEMPERATURE = 0.5
+
+
+
 def blocks_from_json(json_data):
     blocks = []
     for block_data in json_data:
@@ -89,15 +97,15 @@ class IsometricImage:
     """
     A class to represent a isometric image of a object.
     """
-    def __init__(self, object_name: str, feed_back_image: Image.Image | torch.Tensor | np.ndarray | None, available_blocks_path= None):
+    def __init__(self, object_name: str, positions: Dict | Path = None, structure_img: Image.Image | Path = None, available_blocks_path: str = None):
         """
         Initialize a IsometricImage class object by providing the query and feed back image. Then we create a scene object to perform build-in functions.
         Parameters
         ----------
         object_name : str
             The name of the object to be built.
-        feed_back_image : array_like
-            An array-like of the cropped image taken from the original image.
+        positions : json
+            An json contains postions of building blocks. If None, the positions will be set to None.
         available_blocks_path : str, optional
             Path to the JSON file containing available blocks. If None, uses default path.
             
@@ -105,86 +113,48 @@ class IsometricImage:
 
         self.object_name = slugify(object_name)
         self.structure_dir = os.path.join(SAVE_DIR, self.object_name)
-
-        if feed_back_image is None:
-            feed_back_image = Image.open(os.path.join(BASE_PATH, "imgs/block.png"))
-        else:
-            feed_back_image = feed_back_image
-        
-        if isinstance(feed_back_image, Image.Image):
-            feed_back_image = torchvision.transforms.ToTensor()(feed_back_image)
-        elif isinstance(feed_back_image, np.ndarray):
-            feed_back_image = torch.tensor(feed_back_image).permute(2, 0, 1)
-        elif isinstance(feed_back_image, torch.Tensor) and feed_back_image.dtype == torch.uint8:
-            feed_back_image = feed_back_image / 255
-        
-        self.original_img = torchvision.transforms.ToPILImage()(feed_back_image)
-        self.feed_back_image = feed_back_image
         # Load available blocks
         if available_blocks_path is None:
             available_blocks_path = os.path.join(BASE_PATH, "data/simulated_blocks.json")
         available_blocks = load_from_json(available_blocks_path)
         self.available_blocks = process_available_blocks(available_blocks)
-        self.blocks = None
-        self.positions = None
-        self.structure_image = None
+
+        # Create the structure directory if it doesn't exist
+        if isinstance(positions, str):
+            try:
+                if os.path.exists(positions) and os.path.getsize(positions) > 0:
+                    with open(positions, 'r') as positions_data:
+                        self.positions = json.load(positions_data)
+                else:
+                    self.positions = None
+            except json.JSONDecodeError:
+                print(f"Warning: File '{positions}' invalid JSON format or empty. Setting positions to None. Please check the file content.")
+                self.positions = None
+        elif isinstance(positions, dict):
+            self.positions = positions
+        else:
+            self.positions = None
+        
+        # Load positions from JSON file if provided, otherwise set to None
+        if self.positions is None: 
+            self.blocks = []
+        else:
+            self.blocks = blocks_from_json(self.positions)
+        
+        # Load structure image if provided, otherwise set to None
+        if isinstance(structure_img, Image.Image):
+            self.structure_image = structure_img
+        elif isinstance(structure_img, Path) or isinstance(structure_img, str):
+            if os.path.exists(structure_img):
+                self.structure_image = Image.open(structure_img)
+            else:
+                self.structure_image = None
+        else:
+            self.structure_image = None
         self.structure = None
         # # Initialize variables
         self.main_llm_context: List[Dict] = []
         self.eval_llm_context: List[Dict] = []
-        
-    def simple_query(self, question: str):
-        """Returns the answer to a basic question asked about the image. If no question is provided, returns the answer
-        to "What is this?". The questions are about basic perception, and are not meant to be used for complex reasoning
-        or external knowledge.
-        Parameters
-        -------
-        question : str
-            A string describing the question to be asked.
-        """
-        prompt = question
-        ### BLIP2
-#         inputs = processor(images=self.PIL_img, text=prompt, return_tensors="pt").to(device="cuda", dtype=torch.bfloat16)
-#         generated_ids = model_blip.generate(**inputs)
-#         generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
-#         return generated_text
-
-        ### GPT-4o-mini
-        self.original_img.save(query_image_path,"PNG")
-        with open(query_image_path, "rb") as image_file:
-            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-
-        headers = {
-          "Content-Type": "application/json",
-          "Authorization": f"Bearer {OPENAI_CLIENT.api_key}"
-        }
-
-        payload = {
-          "model": "gpt-4o-mini",
-          "messages": [
-            {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text": prompt
-                },
-                {
-                  "type": "image_url",
-                  "image_url": {
-                    "url": f"data:image/jpeg;base64,{base64_image}",
-                    "detail": "low"
-                  }
-                }
-              ]
-            }
-          ],
-          "max_tokens": 300
-        }
-
-        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-        response_message = response.json()["choices"][0]["message"]["content"]
-        return response_message
     
     def llm_query(self, question, context=None, long_answer=True, queues=None):
         """Answers a text question using GPT-4o-mini. The input question is always a formatted string with a variable in it.
@@ -479,7 +449,7 @@ class IsometricImage:
             img.save(
                 f"{self.structure_dir}/{self.object_name}_stability_correction_{i}.png"
             )
-
+        return stable
     def save_structure(self):
         """
         Save the structure to a JSON file.
@@ -488,9 +458,9 @@ class IsometricImage:
             structure=self.structure,
             structure_directory=self.structure_dir,
             to_build=self.object_name,
-            isometric_image=self.feed_back_image,
+            isometric_image=self.structure_image,
             available_blocks_json=self.available_blocks,
-            assembly_num=iter,
+            assembly_num=0,
             eval_rating=None,
             eval_guesses=None,
         )
@@ -544,44 +514,6 @@ class IsometricImage:
         self.eval_llm_context = updated_context
         return response
     
-    # def _get_ratings(self, assembly: Assembly):
-    #     """
-    #     Populates rating and guesses attribute of assembly input
-    #     """
-    #     to_build_slug = self.object_name
-    #     structure_dir = os.path.join(SAVE_DIR, to_build_slug)
-
-    #     # eval
-    #     prompt = self.get_structure_info()
-    #     response, eval_context = prompt_with_caching(
-    #         prompt, [], structure_dir, "info_eval", cache=True, i=iter
-    #     )
-
-    #     json_guesses = get_last_json_as_dict(response)
-    #     save_to_json(json_guesses, os.path.join(SAVE_DIR, to_build_slug, "guesses.json"))
-
-    #     # get rating
-    #     prompt = self.get_structure_rating()
-    #     response, eval_context = prompt_with_caching(
-    #         prompt, eval_context, structure_dir, "rating_eval", cache=True, i=iter
-    #     )
-
-    #     json_rating = get_last_json_as_dict(response)
-    #     save_to_json(json_rating, os.path.join(SAVE_DIR, to_build_slug, "rating.json"))
-
-    #     return json_guesses["guesses"], json_rating["rating"]
-    # def get_ratings(self, assembly: Assembly):
-    #     """
-    #     Populates rating and guesses attribute of assembly input
-    #     """
-    #     guesses, rating = self._get_ratings(
-    #         assembly.to_build, assembly.isometric_image, iter=assembly.assembly_num
-    #     )
-
-    #     assembly.eval_guesses = guesses
-    #     print(assembly.eval_guesses)
-    #     assembly.eval_rating = rating
-    #     print(assembly.eval_rating)
 if __name__ == "__main__":
     # Initialize pybullet
     if not p.isConnected():
@@ -589,20 +521,23 @@ if __name__ == "__main__":
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
     # Pipeline
-    isometric_image = IsometricImage(object_name="Ceiling Fan", feed_back_image=None)
+    isometric_image = IsometricImage(object_name="Table")
     description = isometric_image.describe_object()
     plan = isometric_image.make_plan(description)
     order = isometric_image.order_blocks(plan)
     positions = isometric_image.decide_position(order)
-    isometric_image.make_structure(positions)
-    isometric_image.get_structure_image()
+
+    isometric_image.make_structure(isometric_image.positions)
     isometric_image.refine_structure(isometric_image.blocks)
+    isometric_image.get_structure_image()
 
     # Save the structure
     isometric_image.save_structure()
 
     # Get the structure info
-    isometric_image.get_structure_info()
-    isometric_image.get_structure_rating()
+    info = isometric_image.get_structure_info()
+    print(info)
+    rating = isometric_image.get_structure_rating()
+    print(rating)
     
     p.disconnect()

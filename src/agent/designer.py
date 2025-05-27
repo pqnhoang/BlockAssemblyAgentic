@@ -49,7 +49,3 @@ class Designer:
         plan =  thought_plan.split('<plan>')[1].split('</plan>')[0].strip()
 
         return thought, plan
-    
-if __name__ == "__main__":
-    designer = Designer(designer_prompt=designer_prompt_v2, llm=OpenAILLM(api_file=os.path.join(BASE_PATH, 'api_key.txt')))
-    print(designer("Design a table", None, None))
