@@ -277,4 +277,25 @@ def execute_command(object_name, positions, structure_img):
     structure.save_structure()
     return {"rating": rating_info,"info": structure_info}
 ```
+
+### Example 6
+Plan:
+Step 1: Make the structure from the positions.
+Step 2: Get the information of the tree.
+Step 3: Get the rating of the tree that was built.
+Step 4: Save the structure.
+A: ```
+def execute_command(object_name, positions, structure_img):
+    # Initialize the structure
+    letter = IsometricImage(object_name, positions, structure_img)
+    # Step 1: Make the structure from the positions.
+    letter.make_structure(letter.positions)
+    # Step 2: Get the guesses information of letter U.
+    structure_info = structure.get_structure_info()
+    # Step 2: Get the rating of the structure U that was built.
+    rating_info = structure.get_structure_rating()
+    # Step 3: Save the structure
+    structure.save_structure()
+    return {"rating": rating_info,"info": structure_info}
+```
 '''

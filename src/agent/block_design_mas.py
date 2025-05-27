@@ -70,6 +70,7 @@ class BlockDesignMAS:
                     positions = file_path
             if isinstance(out, dict) and 'image' in out and isinstance(out['image'], Image.Image):
                 out['image'] = f"Image object was created successfully."
+                structure_img = Path(f'imgs/structures/{object_name}/{object_name}_isometric.png')
             self.observation = self.observer(out)
             print(5*'-',"Observation", 5*'-', '\n' + self.observation)
         
@@ -77,5 +78,5 @@ class BlockDesignMAS:
     
 if __name__ == "__main__":
     block_agent = BlockDesignMAS(api_file="api_key.txt")
-    block_agent.query("Tree", positions='/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/final_results/positions/tree_result.json')
+    block_agent.query("Tree", positions='/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/final_results/positions/tree_result.json', structure_img='/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/imgs/structures/tree/tree_isometric.png')
     

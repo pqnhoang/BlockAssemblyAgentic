@@ -16,7 +16,7 @@ Other agent:
    - Skill 4: `decide_position(order: str, iter: int)` - Decide the x, y, yaw for each block based on the order. This populates the internal block list and positions.
    - Skill 5: `make_structure(positions: json)` - Build the structure in simulation using the decided positions.
    - Skill 6: `get_structure_image()` - Get an isometric image of the current structure in simulation.
-   - Skill 7: `refine_structure(blocks: list)` - Attempt to refine and stabilize the current block structure. Requires the blocks list as parameter.
+   - Skill 7: `refine_structure(blocks: list)` - Attempt to refine and stabilize the current block structure. Requires the blocks list as parameter. Returns a boolean indicating if the structure is stable.
    - Skill 8: `save_structure()` - Save the final, stable structure. No parameters needed.
    - Skill 9: `llm_query(query: str)` - Ask a question about an image (e.g., to clarify object features or assess design).
    - Skill 10: Logical reasoning (e.g., conditional checks, math operations) to refine the design and the block order. This is a general capability.
@@ -54,7 +54,7 @@ Other agent:
 
 EXAMPLES_PLANNER = '''
 --- EXAMPLE1 ---
-User Query: Design a tree.
+User Query: Tree.
 <round> 1 </round>
 Planner: 
 <thought> First i need to get the general description of the tree. Then, I need to plan which blocks to use to represent the tree. After that, we need to decide the position of the blocks to assemble the tree. </thought>
@@ -80,7 +80,7 @@ def execute_command(object_name, positions, structure_img):
     # Step 4: Return the blocks position
     return {"positions": positions}
 </code>
-Observer: The returned positions data is in the correct format. The structure includes a cuboid-shaped trunk, and three canopy layers indicating an assembly resembling a tree. Currently focusing on ensuring correct block arrangement.
+Observer: The returned positions data is in the correct format. The structure includes a cuboid-shaped trunk, and three canopy layers indicating an assembly resembling a tree. Currently focusing on ensuring stable block arrangement.
 
 <round> 2 </round>
 Planner:
@@ -89,7 +89,7 @@ Planner:
 Step 1: Place the blocks in the simulation follow the order and position.
 Step 2: Refine the structure by checking the stability of the tree.
 Step 3: Get the image of the design after refining.
-Step 4: Return the position after refining.
+Step 4: Return the position, the stable status and the image after refining.
 </plan>
 
 Coder:
@@ -103,7 +103,7 @@ def execute_command(object_name, positions, structure_img):
     stable = tree.refine_structure(tree.blocks)
     # Step 3: Get the image of the design
     image = tree.get_structure_image()
-    # Step 4: Return the updated positions
+    # Step 4: Return the positions, the stable status and the image after refining
     return {"positions": tree.positions, "is_stable": stable, "image": image}
 </code>
 Observer: The structure is stable.
@@ -134,11 +134,11 @@ def execute_command(object_name, positions, structure_img):
     #Return the information and the rating
     return {"rating": rating, "info": info}
 </code>
-Observer: The structure is valid.
+Observer: The structure is valid. The information and rating indicating that the design resembles a tree with a rating of 4/5. The design phase is complete and ready to return to the user.
 
 <round> 4 </round>
 Planner:
-<thought> The design is valid. We need to save and return the design to the user. </thought>
+<thought> The design is valid. We need to return the design to the user. </thought>
 <plan>
 Step 1: Return to user.
 </plan>
@@ -154,7 +154,7 @@ Planner:
 Step 1: Get the general description of the letter T.
 Step 2: Plan which blocks to use to represent the letter T. 
 Step 3: Decide the position of the blocks to assemble the letter T.
-Step 4: Return the blocks position in json format.
+Step 4: Return the blocks position
 </plan>
 
 Coder:
@@ -181,7 +181,7 @@ Planner:
 Step 1: Place the blocks in the simulation follow the order and position.
 Step 2: Refine the structure by checking the stability of the letter T.
 Step 3: Get the image of the design after refining.
-Step 4: Return the position after refining.
+Step 4: Return the position, the stable status and the image after refining.
 </plan>
 
 Coder:
@@ -227,7 +227,7 @@ def execute_command(object_name, positions, structure_img):
     return {"info": info, "rating": rating}
 
 </code>
-Observer: The structure is valid.
+Observer: The structure is valid. The information and rating indicating that the design resembles a letter T with a rating of 4/5. The design phase is complete and ready to return to the user.
 
 <round> 4 </round>
 Planner:

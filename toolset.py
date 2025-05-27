@@ -521,7 +521,7 @@ if __name__ == "__main__":
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
     # Pipeline
-    isometric_image = IsometricImage(object_name="Table")
+    isometric_image = IsometricImage(object_name="Letter T")
     description = isometric_image.describe_object()
     plan = isometric_image.make_plan(description)
     order = isometric_image.order_blocks(plan)
