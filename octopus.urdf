@@ -1,0 +1,2039 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="octopus">
+  <link name="base_link" />
+  <link name="base_link0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <cylinder length="0.04" radius="0.02" />
+      </geometry>
+      <material name="base_color">
+        <color rgba="0.5 0.2 0.2 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <cylinder length="0.04" radius="0.02" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_base_link0_fixed" type="fixed">
+    <parent link="base_link" />
+    <child link="base_link0" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man0Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man0Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man0Act0Seg0" />
+    <origin xyz="0.03 0.0 0.01" rpy="0 1.5707963267948966 0.0" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man0Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg0_to_Man0Act0Seg1_ax0" type="revolute">
+    <parent link="Man0Act0Seg0" />
+    <child link="Man0Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man0Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg1_to_Man0Act0Seg2_ax1" type="revolute">
+    <parent link="Man0Act0Seg1" />
+    <child link="Man0Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man0Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg2_to_Man0Act0Seg3_ax0" type="revolute">
+    <parent link="Man0Act0Seg2" />
+    <child link="Man0Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man0Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg3_to_Man0Act0Seg4_ax1" type="revolute">
+    <parent link="Man0Act0Seg3" />
+    <child link="Man0Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man0Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg4_to_Man0Act0Seg5_ax0" type="revolute">
+    <parent link="Man0Act0Seg4" />
+    <child link="Man0Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man0Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg5_to_Man0Act0Seg6_ax1" type="revolute">
+    <parent link="Man0Act0Seg5" />
+    <child link="Man0Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man0Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg6_to_Man0Act0Seg7_ax0" type="revolute">
+    <parent link="Man0Act0Seg6" />
+    <child link="Man0Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man0Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man0Act0Seg7_to_Man0Act0Seg8_ax1" type="revolute">
+    <parent link="Man0Act0Seg7" />
+    <child link="Man0Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man1Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man1Act0Seg0" />
+    <origin xyz="0.02121 0.02121 0.01" rpy="0 1.5707963267948966 0.7853981633974483" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man1Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg0_to_Man1Act0Seg1_ax0" type="revolute">
+    <parent link="Man1Act0Seg0" />
+    <child link="Man1Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg1_to_Man1Act0Seg2_ax1" type="revolute">
+    <parent link="Man1Act0Seg1" />
+    <child link="Man1Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg2_to_Man1Act0Seg3_ax0" type="revolute">
+    <parent link="Man1Act0Seg2" />
+    <child link="Man1Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg3_to_Man1Act0Seg4_ax1" type="revolute">
+    <parent link="Man1Act0Seg3" />
+    <child link="Man1Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg4_to_Man1Act0Seg5_ax0" type="revolute">
+    <parent link="Man1Act0Seg4" />
+    <child link="Man1Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg5_to_Man1Act0Seg6_ax1" type="revolute">
+    <parent link="Man1Act0Seg5" />
+    <child link="Man1Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg6_to_Man1Act0Seg7_ax0" type="revolute">
+    <parent link="Man1Act0Seg6" />
+    <child link="Man1Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man1Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man1Act0Seg7_to_Man1Act0Seg8_ax1" type="revolute">
+    <parent link="Man1Act0Seg7" />
+    <child link="Man1Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man2Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man2Act0Seg0" />
+    <origin xyz="0.0 0.03 0.01" rpy="0 1.5707963267948966 1.5707963267948966" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man2Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg0_to_Man2Act0Seg1_ax0" type="revolute">
+    <parent link="Man2Act0Seg0" />
+    <child link="Man2Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg1_to_Man2Act0Seg2_ax1" type="revolute">
+    <parent link="Man2Act0Seg1" />
+    <child link="Man2Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg2_to_Man2Act0Seg3_ax0" type="revolute">
+    <parent link="Man2Act0Seg2" />
+    <child link="Man2Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg3_to_Man2Act0Seg4_ax1" type="revolute">
+    <parent link="Man2Act0Seg3" />
+    <child link="Man2Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg4_to_Man2Act0Seg5_ax0" type="revolute">
+    <parent link="Man2Act0Seg4" />
+    <child link="Man2Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg5_to_Man2Act0Seg6_ax1" type="revolute">
+    <parent link="Man2Act0Seg5" />
+    <child link="Man2Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg6_to_Man2Act0Seg7_ax0" type="revolute">
+    <parent link="Man2Act0Seg6" />
+    <child link="Man2Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man2Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man2Act0Seg7_to_Man2Act0Seg8_ax1" type="revolute">
+    <parent link="Man2Act0Seg7" />
+    <child link="Man2Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man3Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man3Act0Seg0" />
+    <origin xyz="-0.02121 0.02121 0.01" rpy="0 1.5707963267948966 2.356194490192345" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man3Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg0_to_Man3Act0Seg1_ax0" type="revolute">
+    <parent link="Man3Act0Seg0" />
+    <child link="Man3Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg1_to_Man3Act0Seg2_ax1" type="revolute">
+    <parent link="Man3Act0Seg1" />
+    <child link="Man3Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg2_to_Man3Act0Seg3_ax0" type="revolute">
+    <parent link="Man3Act0Seg2" />
+    <child link="Man3Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg3_to_Man3Act0Seg4_ax1" type="revolute">
+    <parent link="Man3Act0Seg3" />
+    <child link="Man3Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg4_to_Man3Act0Seg5_ax0" type="revolute">
+    <parent link="Man3Act0Seg4" />
+    <child link="Man3Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg5_to_Man3Act0Seg6_ax1" type="revolute">
+    <parent link="Man3Act0Seg5" />
+    <child link="Man3Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg6_to_Man3Act0Seg7_ax0" type="revolute">
+    <parent link="Man3Act0Seg6" />
+    <child link="Man3Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man3Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man3Act0Seg7_to_Man3Act0Seg8_ax1" type="revolute">
+    <parent link="Man3Act0Seg7" />
+    <child link="Man3Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man4Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man4Act0Seg0" />
+    <origin xyz="-0.03 0.0 0.01" rpy="0 1.5707963267948966 3.141592653589793" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man4Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg0_to_Man4Act0Seg1_ax0" type="revolute">
+    <parent link="Man4Act0Seg0" />
+    <child link="Man4Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg1_to_Man4Act0Seg2_ax1" type="revolute">
+    <parent link="Man4Act0Seg1" />
+    <child link="Man4Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg2_to_Man4Act0Seg3_ax0" type="revolute">
+    <parent link="Man4Act0Seg2" />
+    <child link="Man4Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg3_to_Man4Act0Seg4_ax1" type="revolute">
+    <parent link="Man4Act0Seg3" />
+    <child link="Man4Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg4_to_Man4Act0Seg5_ax0" type="revolute">
+    <parent link="Man4Act0Seg4" />
+    <child link="Man4Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg5_to_Man4Act0Seg6_ax1" type="revolute">
+    <parent link="Man4Act0Seg5" />
+    <child link="Man4Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg6_to_Man4Act0Seg7_ax0" type="revolute">
+    <parent link="Man4Act0Seg6" />
+    <child link="Man4Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man4Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man4Act0Seg7_to_Man4Act0Seg8_ax1" type="revolute">
+    <parent link="Man4Act0Seg7" />
+    <child link="Man4Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man5Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man5Act0Seg0" />
+    <origin xyz="-0.02121 -0.02121 0.01" rpy="0 1.5707963267948966 -2.356194490192345" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man5Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg0_to_Man5Act0Seg1_ax0" type="revolute">
+    <parent link="Man5Act0Seg0" />
+    <child link="Man5Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg1_to_Man5Act0Seg2_ax1" type="revolute">
+    <parent link="Man5Act0Seg1" />
+    <child link="Man5Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg2_to_Man5Act0Seg3_ax0" type="revolute">
+    <parent link="Man5Act0Seg2" />
+    <child link="Man5Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg3_to_Man5Act0Seg4_ax1" type="revolute">
+    <parent link="Man5Act0Seg3" />
+    <child link="Man5Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg4_to_Man5Act0Seg5_ax0" type="revolute">
+    <parent link="Man5Act0Seg4" />
+    <child link="Man5Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg5_to_Man5Act0Seg6_ax1" type="revolute">
+    <parent link="Man5Act0Seg5" />
+    <child link="Man5Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg6_to_Man5Act0Seg7_ax0" type="revolute">
+    <parent link="Man5Act0Seg6" />
+    <child link="Man5Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man5Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man5Act0Seg7_to_Man5Act0Seg8_ax1" type="revolute">
+    <parent link="Man5Act0Seg7" />
+    <child link="Man5Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man6Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man6Act0Seg0" />
+    <origin xyz="0.0 -0.03 0.01" rpy="0 1.5707963267948966 -1.5707963267948966" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man6Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg0_to_Man6Act0Seg1_ax0" type="revolute">
+    <parent link="Man6Act0Seg0" />
+    <child link="Man6Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg1_to_Man6Act0Seg2_ax1" type="revolute">
+    <parent link="Man6Act0Seg1" />
+    <child link="Man6Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg2_to_Man6Act0Seg3_ax0" type="revolute">
+    <parent link="Man6Act0Seg2" />
+    <child link="Man6Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg3_to_Man6Act0Seg4_ax1" type="revolute">
+    <parent link="Man6Act0Seg3" />
+    <child link="Man6Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg4_to_Man6Act0Seg5_ax0" type="revolute">
+    <parent link="Man6Act0Seg4" />
+    <child link="Man6Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg5_to_Man6Act0Seg6_ax1" type="revolute">
+    <parent link="Man6Act0Seg5" />
+    <child link="Man6Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg6_to_Man6Act0Seg7_ax0" type="revolute">
+    <parent link="Man6Act0Seg6" />
+    <child link="Man6Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man6Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man6Act0Seg7_to_Man6Act0Seg8_ax1" type="revolute">
+    <parent link="Man6Act0Seg7" />
+    <child link="Man6Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg0">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="base_link_to_Man7Act0Seg0" type="fixed">
+    <parent link="base_link" />
+    <child link="Man7Act0Seg0" />
+    <origin xyz="0.02121 -0.02121 0.01" rpy="0 1.5707963267948966 -0.7853981633974483" />
+    <axis xyz="1 0 0" />
+  </joint>
+  <link name="Man7Act0Seg1">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg0_to_Man7Act0Seg1_ax0" type="revolute">
+    <parent link="Man7Act0Seg0" />
+    <child link="Man7Act0Seg1" />
+    <origin xyz="0.0 0.05 0.0125" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg2">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg1_to_Man7Act0Seg2_ax1" type="revolute">
+    <parent link="Man7Act0Seg1" />
+    <child link="Man7Act0Seg2" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg3">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg2_to_Man7Act0Seg3_ax0" type="revolute">
+    <parent link="Man7Act0Seg2" />
+    <child link="Man7Act0Seg3" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg4">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg3_to_Man7Act0Seg4_ax1" type="revolute">
+    <parent link="Man7Act0Seg3" />
+    <child link="Man7Act0Seg4" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg5">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg4_to_Man7Act0Seg5_ax0" type="revolute">
+    <parent link="Man7Act0Seg4" />
+    <child link="Man7Act0Seg5" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg6">
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg5_to_Man7Act0Seg6_ax1" type="revolute">
+    <parent link="Man7Act0Seg5" />
+    <child link="Man7Act0Seg6" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg7">
+    <visual>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.05 0.0125" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.025 0.025 0.025" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg6_to_Man7Act0Seg7_ax0" type="revolute">
+    <parent link="Man7Act0Seg6" />
+    <child link="Man7Act0Seg7" />
+    <origin xyz="0.0 0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+  <link name="Man7Act0Seg8">
+    <visual>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+      <material name="green">
+        <color rgba="0.6 0.0 0.8 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.00625" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.025 0.0125" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.35" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+  </link>
+  <joint name="Man7Act0Seg7_to_Man7Act0Seg8_ax1" type="revolute">
+    <parent link="Man7Act0Seg7" />
+    <child link="Man7Act0Seg8" />
+    <origin xyz="0.0 -0.05 0.025" rpy="0.0 0.0 0.0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.141592" upper="3.141592" effort="100" velocity="3" />
+  </joint>
+</robot>

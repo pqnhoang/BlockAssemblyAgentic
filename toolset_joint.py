@@ -10,6 +10,7 @@ import json
 import sys
 import pybullet as p
 import pybullet_data
+import time
 from dotenv import load_dotenv
 from typing import Dict, List
 from pathlib import Path
@@ -25,7 +26,10 @@ from src.structure.assembly import Assembly
 from src.pybullet.pybullet_axes import get_imgs
 from src.utils.utils import get_last_json_as_dict, load_from_json, save_to_json, markdown_json, slugify
 from src.prompt.prompt import prompt_with_caching
-
+import shutil
+from somo.sm_manipulator_definition import SMManipulatorDefinition
+from somo.sm_link_definition import SMLinkDefinition
+from somo.create_cmassembly_urdf import create_cmassembly_urdf
 
 query_image_path = os.path.join(BASE_PATH, "imgs/block.png")
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -56,6 +60,12 @@ def blocks_from_json(json_data):
             dimensions = [
                 block_data["dimensions"]["radius"],
                 block_data["dimensions"]["height"],
+            ]
+        elif block_data["shape"] == "joint":
+            dimensions = [
+                block_data["dimensions"]["x"],
+                block_data["dimensions"]["y"],
+                block_data["dimensions"]["z"],
             ]
         else:
             raise ValueError(f"Invalid shape {block_data['shape']}")
@@ -93,13 +103,21 @@ def process_available_blocks(blocks):
         )
     return available_blocks
 
-class IsometricImage:
+def normalize_position(position) -> np.ndarray:
+    """Chuẩn hóa vị trí về dạng mảng NumPy [x, y, z]."""
+    if isinstance(position, dict):
+        return np.array([position.get('x', 0), position.get('y', 0), position.get('z', 0)], dtype=float)
+    if isinstance(position, list) and len(position) == 2:
+        return np.array([position[0], position[1], 0], dtype=float)
+    return np.array(position[:3], dtype=float)
+
+class IsometricImageJoint:
     """
     A class to represent a isometric image of a object.
     """
     def __init__(self, object_name: str, positions: Dict | Path = None, structure_img: Image.Image | Path = None, available_blocks_path: str = None):
         """
-        Initialize a IsometricImage class object by providing the query and feed back image. Then we create a scene object to perform build-in functions.
+        Initialize a IsometricImageJoint class object by providing the query and feed back image. Then we create a scene object to perform build-in functions.
         Parameters
         ----------
         object_name : str
@@ -115,7 +133,7 @@ class IsometricImage:
         self.structure_dir = os.path.join(SAVE_DIR, self.object_name)
         # Load available blocks
         if available_blocks_path is None:
-            available_blocks_path = os.path.join(BASE_PATH, "data/simulated_blocks.json")
+            available_blocks_path = os.path.join(BASE_PATH, "data/simulated_blocks_joint.json")
         available_blocks = load_from_json(available_blocks_path)
         self.available_blocks = process_available_blocks(available_blocks)
 
@@ -203,6 +221,7 @@ class IsometricImage:
 
         prompt = f"""
         I'm working on constructing a block tower that represents a(n) {self.object_name}. I need a concise, qualitative description of the design that captures its essence in a minimalistic style. The design should focus on simplicity, avoiding unnecessary complexity while still conveying the key features of a(n) {self.object_name}. The description should highlight the overall structure and proportions, emphasizing how the block arrangement reflects the object's shape and form. However the design shouldn't be too large, too wide, or too tall.
+        This design can incorporate both rigid blocks (cuboids, cylinders) and flexible joint blocks that allow for articulated connections and curved forms. For objects requiring flexibility, bending, or articulation (like animals, human figures, or curved structures), joint blocks should be strategically used to create smooth transitions and natural poses. The joint blocks enable the structure to have flexible segments that can bend and move, making it more lifelike and dynamic.
         """.strip()
         self.main_llm_context = []
 
@@ -248,7 +267,7 @@ class IsometricImage:
 
         Cylinders are always positioned "upright," with the flat sides parallel to the ground and their radius extending along the x and y axes.
 
-        Cones are always positioned with their flat side down and their pointed tip facing upwards. This means the base of the cone lies parallel to the ground plane, with the cone's height extending along the z-axis and the radius along the x and y axes.
+        Joint blocks are flexible blocks composed of 8 interconnected segments that work as an articulated chain. They represent soft, bendable parts of objects requiring natural curves and movement - ideal for flexible limbs (arms, legs, tentacles, tails), curved body parts (necks, spines), and organic connections between rigid components. Joint blocks can bend and articulate to create smooth curves and lifelike poses that rigid blocks cannot achieve, enhancing the overall authenticity and expressiveness of the {self.object_name}.
 
         Decide a semantic name for the block for the role it represents in the structure. 
         Decide the colors of each block to look like a {self.object_name}. Color is an rgba array with values from 0 to 1.
@@ -390,7 +409,113 @@ class IsometricImage:
         self.structure = structure
         save_to_json(structure.get_json(), f"{structure_dir}/{self.object_name}.json")
         return structure
-    
+    def make_urdf_and_view(self, manipulator_yaml_path: str):
+        """
+        Thay thế cho make_structure.
+        Hàm này phân tích self.positions, tự động tìm base, tạo URDF và hiển thị.
+        """
+
+        # devide blocks into 2 groups: joints and non-joints
+        joints = []
+        non_joints = []
+
+        for part in self.positions:
+            part['position_np'] = normalize_position(part['position'])
+            if part.get('shape', '').lower() == 'joint':
+                joints.append(part)
+            else:
+                non_joints.append(part)
+        
+        if not non_joints or not joints:
+            print("Need at least one joint and one non-joint part to create a URDF.")
+            return
+
+        # automatic find base link
+        base_popularity = {part['name']: 0 for part in non_joints}
+        for joint in joints:
+            distances = [(np.linalg.norm(joint['position_np'] - nj['position_np']), nj['name']) for nj in non_joints]
+            closest_base_name = min(distances, key=lambda x: x[0])[1]
+            base_popularity[closest_base_name] += 1
+            print(f"Joint '{joint['name']}' closest to base '{closest_base_name}' with distance {distances[0][0]:.2f} m")
+            print(f"Joint '{joint['name']}' position: {joint['position_np']} m")
+            print(f"Base '{closest_base_name}' position: {next(part for part in non_joints if part['name'] == closest_base_name)['position_np']} m")
+        
+        base_name = max(base_popularity, key=base_popularity.get)
+        base_block = next(part for part in non_joints if part['name'] == base_name)
+        base_position_np = base_block['position_np']
+        print(f"✅ Base Link được xác định là: '{base_name}'")
+
+        # # 3. Tạo định nghĩa Base Link cho SOMO
+        base_shape_from_llm = base_block['shape']
+        somo_shape = "box" if base_shape_from_llm.lower() == "cuboid" else base_shape_from_llm
+        dims_dict = base_block['dimensions']
+        print(dims_dict)
+        
+        if somo_shape == "box":
+            somo_dims = [
+                dims_dict.get('x', 25) / 1000.0,
+                dims_dict.get('y', 25) / 1000.0,
+                dims_dict.get('z', 25) / 1000.0,
+            ]
+        else: # Mặc định cho cylinder
+            somo_dims = [
+                dims_dict.get('height', 25) / 1000.0,
+                dims_dict.get('radius', 25) / 1000.0,
+            ]
+
+        somo_base_link = SMLinkDefinition(
+            shape_type=somo_shape,
+            dimensions=somo_dims, # <--- Dùng kích thước đã được xử lý đúng
+            mass=1.0,
+            material_color=base_block['color'],
+            inertial_values=[0.1, 0, 0, 0.1, 0, 0.1],
+            material_name="base_color",
+        )
+
+        # 4. Tạo các cặp Manipulator và Offset
+        manipulator_def = SMManipulatorDefinition.from_file(manipulator_yaml_path)
+        manipulator_pairs = []
+        for joint in joints:
+            relative_pos_m = (joint['position_np'] - base_position_np) / 1000.0
+            angle = np.arctan2(relative_pos_m[1], relative_pos_m[0])
+            offset = [relative_pos_m[0], relative_pos_m[1], 0.1, 0, np.pi/2, angle]
+            manipulator_pairs.append((manipulator_def, offset))
+
+        # 5. Tạo và lưu file URDF
+        os.makedirs(self.structure_dir, exist_ok=True)
+        assembly_name = self.object_name
+        temp_urdf_file = create_cmassembly_urdf(
+            base_links=[somo_base_link],
+            manipulator_definition_pairs=manipulator_pairs,
+            assembly_name=assembly_name
+        )
+        self.urdf_path = os.path.join(self.structure_dir, f"{assembly_name}.urdf")
+        shutil.copy(temp_urdf_file, self.urdf_path)
+        print(f"🎉 URDF đã được tạo tại: {self.urdf_path}")
+
+        # Hiển thị trong PyBullet
+        user_choice = input("Bạn có muốn xem model vừa tạo trong PyBullet không? (y/n): ")
+        if user_choice.lower() == 'y':
+            self._view_urdf_in_pybullet()
+
+    def _view_urdf_in_pybullet(self):
+        """Hàm nội bộ để hiển thị file URDF đã tạo."""
+        if not self.urdf_path:
+            print("❌ Không có file URDF để hiển thị.")
+            return
+
+        print(f"👀 Đang mở PyBullet để xem '{os.path.basename(self.urdf_path)}'...")
+        client = p.connect(p.GUI)
+        p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        p.setGravity(0, 0, -9.8)
+        p.loadURDF("plane.urdf")
+        p.loadURDF(self.urdf_path, basePosition=[0, 0, 0], useFixedBase=True)
+        
+        print("✅ Tải model thành công. Đóng cửa sổ PyBullet để thoát.")
+        for _ in range(1000):  # Giữ cửa sổ mở trong một thời gian ngắn
+            p.stepSimulation()
+            time.sleep(0.01)
+        print("👋 Đã đóng PyBullet.")
     def get_structure_image(self):
         """
         Get the image of the structure.
@@ -514,30 +639,33 @@ class IsometricImage:
         self.eval_llm_context = updated_context
         return response
     
+    
+    
 if __name__ == "__main__":
     # Initialize pybullet
-    if not p.isConnected():
-                p.connect(p.GUI)
-    p.setAdditionalSearchPath(pybullet_data.getDataPath())
+    # if not p.isConnected():
+    #             p.connect(p.GUI)
+    # p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
     # Pipeline
-    isometric_image = IsometricImage(object_name="Turtle")
+    isometric_image = IsometricImageJoint(object_name="Octopus")
     description = isometric_image.describe_object()
     plan = isometric_image.make_plan(description)
     order = isometric_image.order_blocks(plan)
     positions = isometric_image.decide_position(order)
 
-    isometric_image.make_structure(isometric_image.positions)
-    isometric_image.refine_structure(isometric_image.blocks)
-    isometric_image.get_structure_image()
+    isometric_image.make_urdf_and_view(manipulator_yaml_path='/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/data/joint_def.yaml')
+    final_urdf_path = isometric_image.urdf_path
+    # isometric_image.refine_structure(isometric_image.blocks)
+    # isometric_image.get_structure_image()
 
-    # Save the structure
-    isometric_image.save_structure()
+    # # Save the structure
+    # isometric_image.save_structure()
 
-    # Get the structure info
-    info = isometric_image.get_structure_info()
-    print(info)
-    rating = isometric_image.get_structure_rating()
-    print(rating)
+    # # Get the structure info
+    # info = isometric_image.get_structure_info()
+    # print(info)
+    # rating = isometric_image.get_structure_rating()
+    # print(rating)
     
-    p.disconnect()
+    # p.disconnect()

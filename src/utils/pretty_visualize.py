@@ -89,7 +89,7 @@ def save_assembly_visual(assembly, save_path):
 
 if __name__ == "__main__":
     # Tìm tất cả các file assembly đã lưu
-    paths = glob.glob("/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/gpt_caching/letter-t/assembly_obj_0.pkl")
+    paths = glob.glob("/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/gpt_caching/*/*.pkl")
     
     if not paths:
         print("No .pkl assembly files found in the specified path.")
