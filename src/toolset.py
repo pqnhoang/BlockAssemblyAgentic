@@ -339,7 +339,7 @@ class IsometricImage:
         """
         Get the image of the structure.
         """
-        structure_dir = os.path.join(settings.path.base_path, "imgs/structures")
+        structure_dir = os.path.join(settings.path.base_path, "assets/imgs/structures")
         isometric_img = get_imgs(keys=["isometric"], axes=True, labels=False)
         img = Image.fromarray(isometric_img)
         img.save(
