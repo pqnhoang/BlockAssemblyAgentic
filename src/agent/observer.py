@@ -1,10 +1,3 @@
-import os
-import sys
-
-# Thêm thư mục gốc của dự án vào sys.path
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(BASE_PATH)
-
 import matplotlib.pyplot as plt
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
 import torch

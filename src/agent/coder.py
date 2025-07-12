@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from typing import Any
 
 from .llm import OpenAILLM
-from ..prompt import coder_prompt_v2, coder_prompt_v3
+from ..prompt import coder_prompt_v3
 
 
 class Coder:

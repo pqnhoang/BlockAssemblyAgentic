@@ -1,6 +1,7 @@
 import json
 from scipy.spatial.transform import Rotation as R
-
+import pybullet as p
+import numpy as np
 
 def _round_list(ls):
     return [round(x) for x in ls]
@@ -202,3 +203,53 @@ class Block:
             dims: {self.dimensions},
             pos: {self.position}
         """
+
+def blocks_from_json(json_data):
+    blocks = []
+    for block_data in json_data:
+        if block_data["shape"] == "cuboid":
+            dimensions = [
+                block_data["dimensions"]["x"],
+                block_data["dimensions"]["y"],
+                block_data["dimensions"]["z"],
+            ]
+        elif block_data["shape"] == "cylinder" or block_data["shape"] == "cone":
+            dimensions = [
+                block_data["dimensions"]["radius"],
+                block_data["dimensions"]["height"],
+            ]
+        else:
+            raise ValueError(f"Invalid shape {block_data['shape']}")
+
+        block = Block(
+            id=999,  # id gets updated by place blocks call, otherwise it's unknown
+            gpt_name=block_data["name"],
+            block_name="",
+            shape=block_data["shape"],
+            dimensions=dimensions,
+            position=[
+                block_data["position"]["x"],
+                block_data["position"]["y"],
+                1 * 1000,
+            ],
+            orientation=p.getQuaternionFromEuler([0, 0, np.radians(block_data["yaw"])]),
+            color=block_data["color"],
+        )
+        blocks.append(block)
+
+    return blocks
+
+def process_available_blocks(blocks):
+    available_blocks = []
+    for block_name, block in blocks.items():
+        block_shape = block["shape"]
+        block_dimensions = block["dimensions"]
+        number_available = block["number_available"]
+        available_blocks.append(
+            {
+                "shape": block_shape,
+                "dimensions": block_dimensions,
+                "number_available": number_available,
+            }
+        )
+    return available_blocks

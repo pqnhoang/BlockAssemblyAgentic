@@ -1,19 +1,11 @@
-import os
-import sys
-
-# Thêm thư mục gốc của dự án vào sys.path
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(BASE_PATH)
-import time
 from src.agent.llm import OpenAILLM
 from src.prompt import designer_prompt_v2
 import matplotlib.pyplot as plt
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
-import torch
-import base64
-from PIL import Image
+from typing import Any
 import json
+from ..settings import BlockMASSettings
 
+settings = BlockMASSettings()
 
 class Designer:
     def __init__(self, designer_prompt: designer_prompt_v2, llm: OpenAILLM, model_name="gpt-4o", max_tokens=1000, available_blocks_path=None):
@@ -27,7 +19,7 @@ class Designer:
         self.llm = llm        
         # Load available blocks
         if available_blocks_path is None:
-            available_blocks_path = os.path.join(BASE_PATH, "data/simulated_blocks.json")
+            available_blocks_path = settings.path.data_path
         with open(available_blocks_path, 'r') as f:
             self.available_blocks = json.load(f)
 
