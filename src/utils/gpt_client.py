@@ -150,10 +150,3 @@ class GPTClient:
                 return img
         else:
             raise Exception("Failed to download DALLE image")
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    response, context = GPTClient.prompt_gpt("hello")
-    print(response)

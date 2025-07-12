@@ -17,9 +17,6 @@ from src.pybullet.place_blocks_in_json import (
 from src.pybullet.pybullet_axes import get_imgs
 import time
 from typing import List
-from data.soft_block_box import manipulator_definition
-from data.soft_block_capsule import manipulator_definition2
-from somo.sm_continuum_manipulator import SMContinuumManipulator
 
 class Structure:
     def __init__(self, available_blocks={}):
@@ -149,8 +146,6 @@ def create_block(block):
         return _create_cuboid(block)
     elif block.shape == "cylinder":
         return _create_cylinder(block)
-    elif block.shape == "joint":
-        return _create_joint(block)
     else:
         raise ValueError(f"Shape {block.shape} not supported")
 
@@ -218,32 +213,6 @@ def _create_cylinder(block, lateral_friction=0.5, spinning_friction=0.2):
         id, -1, lateralFriction=lateral_friction, spinningFriction=spinning_friction
     )
     return id
-
-def _create_joint(block, lateral_friction=0.5, spinning_friction=0.2):
-    dimensions, position, orientation, color = (
-        block.dimensions,
-        block.position,
-        block.orientation,
-        block.color,
-    )
-    baseStartPos = [x / 1000 for x in position]
-    baseStartOrn = orientation
-
-    
-    # Khởi tạo SMContinuumManipulator với manipulator_definition
-    joint_block = SMContinuumManipulator(manipulator_definition)
-    physics_client = 0
-    joint_block.load_to_pybullet(
-        baseStartPos=baseStartPos,
-        baseStartOrn=baseStartOrn,
-        baseConstraint="static",
-        physicsClient=physics_client,
-    )
-    print("joint_block.bodyUniqueId", joint_block.bodyUniqueId)
-    p.changeDynamics(joint_block.bodyUniqueId, -1, lateralFriction=lateral_friction, spinningFriction=spinning_friction)
-    p.changeDynamics(joint_block.bodyUniqueId, -1, restitution=1)
-
-    return joint_block.bodyUniqueId
     
     
 def test_with_gui():

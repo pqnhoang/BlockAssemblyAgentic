@@ -1,22 +1,16 @@
 import os
-import sys
-
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(BASE_PATH)
-
 from matplotlib import pyplot as plt
 import numpy as np
-from src.utils.utils import (
+from ..utils import (
+    GPTClient,
     save_to_json,
     load_from_json,
     save_file,
     load_file,
     save_base64_image,
 )
-from src.utils.gpt_client import GPTClient
 from PIL import Image
 from dotenv import load_dotenv
-
 
 def make_dalle_prompt(to_build: str) -> str:
     return f"""Create a simple 3D cartoon drawing of a {to_build}.  Only include one instance of a {to_build} in the image. Don't include a background, only show a {to_build}."""
@@ -130,12 +124,3 @@ def prompt_with_caching(
     save_file(context_md, context_markdown_path)
 
     return response, context
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    response, context = prompt_with_caching(
-        "hello", [], "test", "test", cache=False, i=0
-    )
-    print(response)

@@ -1,17 +1,8 @@
-import os
-import sys
-
-# Thêm thư mục gốc của dự án vào sys.path
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(BASE_PATH)
-
 import matplotlib.pyplot as plt
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
-import torch
-import base64
-from PIL import Image
-from src.agent.llm import OpenAILLM
-from src.prompt import coder_prompt_v2, coder_prompt_v3
+from typing import Any
+
+from .llm import OpenAILLM
+from ..prompt import coder_prompt_v2, coder_prompt_v3
 
 
 class Coder:

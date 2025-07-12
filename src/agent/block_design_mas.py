@@ -1,35 +1,26 @@
-import os
-import sys
 from pathlib import Path
-
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(BASE_PATH)
-
 from src.agent.llm import OpenAILLM
-import matplotlib.pyplot as plt
-import numpy as np
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
 import base64
 from PIL import Image
-from toolset import IsometricImage
-from src.agent.designer import Designer
-from src.agent.observer import Observer
-from src.agent.coder import Coder
-from src.prompt import coder_prompt_v3, designer_prompt_v2, observer_prompt_v2
-import torch
 import json
-from src.utils.utils import print_dict, slugify
+from typing import Any
+from .designer import Designer
+from .observer import Observer
+from .coder import Coder
+from ..prompt import coder_prompt_v3, designer_prompt_v2, observer_prompt_v2
+from ..utils import slugify
+from ..settings import BlockMASSettings
+
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
-
-available_blocks = os.path.join(BASE_PATH, 'data/simulated_blocks.json')
+setting = BlockMASSettings()
 
 class BlockDesignMAS:
     def __init__(self, api_file, max_round=5):
         super().__init__()
         self.llm = OpenAILLM(api_file)
-        self.designer = Designer(designer_prompt_v2, self.llm, available_blocks)
+        self.designer = Designer(designer_prompt_v2, self.llm, setting.path.data_path)
         self.coder = Coder(coder_prompt_v3, self.llm)
         self.observer = Observer(observer_prompt_v2, self.llm)
         self.plan = None
