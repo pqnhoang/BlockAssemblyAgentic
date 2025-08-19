@@ -1,8 +1,13 @@
+import os
+import sys
 import matplotlib.pyplot as plt
 from typing import Any
 
-from .llm import OpenAILLM
-from ..prompt import coder_prompt_v3
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(BASE_PATH)
+
+from src.agent.llm import OpenAILLM
+from src.prompt.coder_prompt_v3 import coder_prompt_v3
 
 
 class Coder:

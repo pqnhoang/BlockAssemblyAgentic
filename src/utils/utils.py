@@ -11,6 +11,7 @@ import numpy as np
 import json
 import os
 from io import BytesIO
+import cv2
 
 
 def write_error(file_path, error_text):

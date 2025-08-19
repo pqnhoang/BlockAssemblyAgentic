@@ -1,7 +1,14 @@
 import json
+import os
+import sys
 from scipy.spatial.transform import Rotation as R
 import pybullet as p
 import numpy as np
+
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(BASE_PATH)
+
+from somo.sm_link_definition import SMLinkDefinition
 
 def _round_list(ls):
     return [round(x) for x in ls]
@@ -18,6 +25,8 @@ class Block:
         position: list,
         orientation: list,
         color: list = [1.0, 0, 0, 1.0],
+        base_block: str = "None",
+        smlink_definition: SMLinkDefinition = None,
     ) -> None:
         assert len(color) == 4, "color is not length 4"
         assert (
@@ -51,6 +60,8 @@ class Block:
         self._position = position
         self.orientation = orientation
         self._color = color
+        self._base_block = base_block
+        self._smlink_definition = smlink_definition
 
     def get_json(self):
         dimensions = (
@@ -68,6 +79,7 @@ class Block:
             "position": self.position,
             "orientation": self.orientation,
             "color": self.color,
+            "base_block": self._base_block,
         }
 
     @staticmethod
@@ -82,6 +94,7 @@ class Block:
             position=data["position"],
             orientation=data["orientation"],
             color=data["color"],
+            base_block=data.get("base_block", ""),
         )
 
     @staticmethod
@@ -203,7 +216,12 @@ class Block:
             dims: {self.dimensions},
             pos: {self.position}
         """
-
+    @property
+    def base_block(self):
+        return self._base_block
+    @base_block.setter
+    def base_block(self, value):
+        self._base_block = value
 def blocks_from_json(json_data):
     blocks = []
     for block_data in json_data:
@@ -217,6 +235,12 @@ def blocks_from_json(json_data):
             dimensions = [
                 block_data["dimensions"]["radius"],
                 block_data["dimensions"]["height"],
+            ]
+        elif block_data["shape"] == "joint":
+            dimensions = [
+                block_data["dimensions"]["x"],
+                block_data["dimensions"]["y"],
+                block_data["dimensions"]["z"],
             ]
         else:
             raise ValueError(f"Invalid shape {block_data['shape']}")
@@ -237,6 +261,61 @@ def blocks_from_json(json_data):
         )
         blocks.append(block)
 
+    return blocks
+def blocks_from_json_joint(json_data):
+    blocks = []
+    for block_data in json_data:
+        if block_data["shape"] == "cuboid":
+            dimensions = [
+                block_data["dimensions"]["x"],
+                block_data["dimensions"]["y"],
+                block_data["dimensions"]["z"],
+            ]
+            positions = [
+                block_data["offset"]["x"],
+                block_data["offset"]["y"],
+                1 * 1000,
+            ]
+        elif block_data["shape"] == "cylinder" or block_data["shape"] == "cone":
+            dimensions = [
+                block_data["dimensions"]["radius"],
+                block_data["dimensions"]["height"],
+            ]
+            positions = [
+                block_data["offset"]["x"],
+                block_data["offset"]["y"],
+                1 * 1000,
+            ]
+        elif block_data["shape"] == "joint":
+            dimensions = [
+                block_data["dimensions"]["x"],
+                block_data["dimensions"]["y"],
+                block_data["dimensions"]["z"],
+            ]
+            positions = [
+                block_data["offset"]["x"],
+                block_data["offset"]["y"],
+                block_data["offset"]["z"],
+            ]
+        else:
+            raise ValueError(f"Invalid shape {block_data['shape']}")
+        roll, pitch, yaw = (
+            block_data["offset"]["roll"],
+            block_data["offset"]["pitch"],
+            block_data["offset"]["yaw"],
+        )
+        block = Block(
+            id=999,  # id gets updated by place blocks call, otherwise it's unknown
+            gpt_name=block_data["name"],
+            block_name="",
+            shape=block_data["shape"],
+            dimensions=dimensions,
+            position= positions,
+            orientation=[roll, pitch, yaw],
+            color=block_data["color"],
+            base_block=block_data["base_block"] if "base_block" in block_data else "None",
+        )
+        blocks.append(block)
     return blocks
 
 def process_available_blocks(blocks):

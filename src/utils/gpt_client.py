@@ -3,10 +3,8 @@ from openai import OpenAI
 from PIL import Image
 import numpy as np
 import base64
-from dotenv import load_dotenv
 import requests
-
-load_dotenv()
+import os
 
 def encode_image_from_pil(pil_img: Image.Image):
     # convert to RGB
@@ -46,11 +44,33 @@ def download_image(image_url, file_path):
 
 class GPTClient:
     _instance = None
+    _api_key = None
 
     @classmethod
-    def _get_instance(cls):
+    def _load_api_key(cls, api_file="src/agent/api_key.txt"):
+        """Load API key from file or environment variable"""
+        if cls._api_key is None:
+            # Try to get API key from file first
+            if api_file and os.path.exists(api_file):
+                with open(api_file) as f:
+                    cls._api_key = f.read().strip()
+            else:
+                # Fall back to environment variable
+                cls._api_key = os.getenv("OPENAI_API_KEY")
+                
+            if not cls._api_key:
+                raise ValueError(
+                    "OpenAI API key not found. Please provide it either through:\n"
+                    "1. api_key.txt file in src/agent/ directory\n"
+                    "2. OPENAI_API_KEY environment variable"
+                )
+        return cls._api_key
+
+    @classmethod
+    def _get_instance(cls, api_file="src/agent/api_key.txt"):
         if cls._instance is None:
-            cls._instance = OpenAI()  # Initialize the client once
+            api_key = cls._load_api_key(api_file)
+            cls._instance = OpenAI(api_key=api_key)  # Initialize the client once
         return cls._instance
 
     @classmethod
@@ -92,11 +112,12 @@ class GPTClient:
         max_tokens=3500,
         temperature=0,
         system_message=None,
+        api_file="src/agent/api_key.txt",
     ):
         """
         get full gpt response object
         """
-        client = cls._get_instance()
+        client = cls._get_instance(api_file)
 
         content = cls.encode_messages_and_images(messages_and_images)
 
@@ -128,8 +149,8 @@ class GPTClient:
         return response_txt, new_context
 
     @classmethod
-    def get_image_from_dalle(cls, prompt, img_save_path):
-        client = cls._get_instance()
+    def get_image_from_dalle(cls, prompt, img_save_path, api_file="src/agent/api_key.txt"):
+        client = cls._get_instance(api_file)
         # Generate the image using DALL-E
         response = client.images.generate(
             model="dall-e-3",

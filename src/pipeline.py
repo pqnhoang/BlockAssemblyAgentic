@@ -1,5 +1,12 @@
-from .agent.block_design_mas import BlockDesignMAS
+import os
+import sys
+
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(BASE_PATH)
+
+from src.agent.block_design_mas import BlockDesignMAS
 import warnings
+from src.toolset import IsometricImage
 warnings.filterwarnings('ignore')
 
 designmas = BlockDesignMAS(api_file="api_key.txt", max_round=5)

@@ -1,15 +1,23 @@
+import os
+import sys
 from pathlib import Path
+
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(BASE_PATH)
+
 from src.agent.llm import OpenAILLM
 import base64
 from PIL import Image
 import json
 from typing import Any
-from .designer import Designer
-from .observer import Observer
-from .coder import Coder
-from ..prompt import coder_prompt_v3, designer_prompt_v2, observer_prompt_v2
-from ..utils import slugify
-from ..settings import BlockMASSettings
+from src.agent.designer import Designer
+from src.agent.observer import Observer
+from src.agent.coder import Coder
+from src.prompt.coder_prompt_v3 import coder_prompt_v3
+from src.prompt.designer_prompt_v2 import designer_prompt_v2
+from src.prompt.observer_prompt_v2 import observer_prompt_v2
+from src.utils import slugify
+from configs import BlockMASSettings
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:

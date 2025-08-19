@@ -29,3 +29,6 @@ Follow these steps to install the BlockAssemblyAgentic framework:
 - Check `simple_demo.ipynb` notebook for simple demo inference. This notebook includes detailed instructions and executing queries with visualization.
 - All toolset are in `toolset.py`
 - Run run simple inference using `main_simple.py`.
+
+##TODO
+- Place the joint blocks with no base block.

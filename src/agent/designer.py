@@ -1,9 +1,15 @@
+import os
+import sys
+
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(BASE_PATH)
+
 from src.agent.llm import OpenAILLM
-from src.prompt import designer_prompt_v2
+from src.prompt.designer_prompt_v2 import designer_prompt_v2
 import matplotlib.pyplot as plt
 from typing import Any
 import json
-from ..settings import BlockMASSettings
+from configs import BlockMASSettings
 
 settings = BlockMASSettings()
 

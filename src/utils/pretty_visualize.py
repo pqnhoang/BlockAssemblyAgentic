@@ -25,7 +25,7 @@ def save_visual(blocks, save_path_str):
 
     # Initialize a PyVista plotter
     plotter = pv.Plotter(off_screen=True) # Dùng off_screen để không hiển thị cửa sổ đồ họa
-
+    
     for i, block in enumerate(blocks):
         dim = block["dimensions"]
         if block["shape"] == "cuboid":
@@ -37,6 +37,43 @@ def save_visual(blocks, save_path_str):
         elif block["shape"] == "cone":
             radius, height = dim["radius"], dim["height"]
             mesh = pv.Cone(radius=radius, height=height, direction=(0, 0, 1), center=(0, 0, height/2), resolution=100)
+        elif block["shape"] == "joint":
+            details = block.get("joint_details")
+            if not details:
+                continue
+
+            n_segments = details.get("n_segments", 1)
+            seg_shape = details.get("segment_shape", "box")
+            seg_dims = details.get("segment_dimensions", {})
+            joint_axis = details.get("joint_axis", [1, 0, 0])
+            joint_angle_deg = details.get("joint_angle_deg", 0)
+
+            # Vị trí và hướng khởi tạo cho đốt đầu tiên
+            current_pos = np.array(position)
+            current_rot = R.from_quat(orientation)
+
+            for _ in range(n_segments):
+                seg_mesh = None
+                height = 0
+                if seg_shape == "box":
+                    x, y, z = seg_dims.get("x", 1), seg_dims.get("y", 1), seg_dims.get("z", 1)
+                    height = x # Giả định chiều dài của đốt là kích thước x
+                    seg_mesh = pv.Box(center=(height/2, 0, 0)) # Tạo box với tâm ở giữa theo chiều dài
+                
+                # Áp dụng vị trí và hướng hiện tại
+                transform_matrix = np.eye(4)
+                transform_matrix[:3, :3] = current_rot.as_matrix()
+                transform_matrix[:3, 3] = current_pos
+                seg_mesh.transform(transform_matrix, inplace=True)
+                
+                plotter.add_mesh(seg_mesh, color=color)
+
+                # Cập nhật vị trí và hướng cho đốt tiếp theo
+                translation_vec = current_rot.apply([height, 0, 0])
+                current_pos += translation_vec
+                
+                joint_rotation = R.from_rotvec(np.radians(joint_angle_deg) * np.array(joint_axis))
+                current_rot = current_rot * joint_rotation
         else:
             print(f"Warning: Block type {block.get('type')} not supported. Skipping.")
             continue
@@ -89,7 +126,7 @@ def save_assembly_visual(assembly, save_path):
 
 if __name__ == "__main__":
     # Tìm tất cả các file assembly đã lưu
-    paths = glob.glob("/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/gpt_caching/*/*.pkl")
+    paths = glob.glob("/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/assets/gpt_caching/octopus/assembly_obj_0.pkl")
     
     if not paths:
         print("No .pkl assembly files found in the specified path.")

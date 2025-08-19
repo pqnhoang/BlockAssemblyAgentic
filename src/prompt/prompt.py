@@ -1,7 +1,12 @@
 import os
+import sys
 from matplotlib import pyplot as plt
 import numpy as np
-from ..utils import (
+
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(BASE_PATH)
+
+from src.utils import (
     GPTClient,
     save_to_json,
     load_from_json,
@@ -10,7 +15,6 @@ from ..utils import (
     save_base64_image,
 )
 from PIL import Image
-from dotenv import load_dotenv
 
 def make_dalle_prompt(to_build: str) -> str:
     return f"""Create a simple 3D cartoon drawing of a {to_build}.  Only include one instance of a {to_build} in the image. Don't include a background, only show a {to_build}."""

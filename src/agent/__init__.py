@@ -1,3 +1,8 @@
-from block_design_mas import BlockDesignMAS
+# Temporary __init__.py file to allow imports
+# This file will be removed when the repo is restructured
 
-__all__ = ["BlockDesignMAS"]
+from .block_design_mas import BlockDesignMAS
+from .designer import Designer
+from .observer import Observer
+from .coder import Coder
+from .llm import OpenAILLM

@@ -1,12 +1,18 @@
+import os
+import sys
 import matplotlib.pyplot as plt
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
 import torch
 import base64
 from PIL import Image
+
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(BASE_PATH)
+
 from src.agent.llm import OpenAILLM
 from pathlib import Path
 import json
-from src.prompt import observer_prompt_v2
+from src.prompt.observer_prompt_v2 import observer_prompt_v2
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:

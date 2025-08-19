@@ -1,21 +1,76 @@
 # API keys and secrets
 src/agent/api_key.txt
 *.key
+*.env
 .env
-.vscode/extensions.json
-assets/gpt_caching
-assets/final_results/positions
-assets/imgs
+.env.local
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python cache and build files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Specific Python cache directories
+src/**/__pycache__/
+src/__pycache__/
+configs/__pycache__/
+somo/__pycache__/
+
+# Output and result files
+outputs/
+results/
+assets/
+assets/gpt_caching/
+assets/final_results/
+assets/imgs/
 assets/data/__pycache__/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Poetry
 poetry.lock
 
-__pycache__/
-src/agent/__pycache__/
-src/prompt/__pycache__/
-src/pybullet/__pycache__/
-src/settings/__pycache__/
-src/somo/__pycache__/
-src/structure/__pycache__/
-src/utils/__pycache__/
-src/__pycache__/
+# Git attributes (if not needed)
 .gitattributes

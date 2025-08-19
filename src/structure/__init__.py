@@ -1,9 +1,6 @@
-from .assembly import Assembly
-from .block import Block, blocks_from_json, process_available_blocks
-from .structure import Structure
+# Temporary __init__.py file to allow imports
+# This file will be removed when the repo is restructured
 
-__all__ = ["Assembly", 
-           "Block", 
-           "Structure",
-           "blocks_from_json",
-           "process_available_blocks"]
+from .structure import Structure
+from .block import Block, blocks_from_json, blocks_from_json_joint, process_available_blocks
+from .assembly import Assembly
