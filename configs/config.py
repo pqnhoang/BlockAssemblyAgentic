@@ -10,11 +10,11 @@ class PathSettings(BaseModel):
         description="Base path for the project."
     )
     save_dir: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/assets/gpt_caching",
+        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/outputs/gpt_caching",
         description="Path to the directory where results will be saved."
     )
     position_dir: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/assets/final_results/positions",
+        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/results/positions",
         description="Path to the directory where position results will be saved."
     )
     querry_img_path: str = Field(
@@ -22,11 +22,11 @@ class PathSettings(BaseModel):
         description="Path to the directory where query images will be saved."
     )
     data_path: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/assets/data/simulated_blocks_joint.json",
+        default="configs/simulated_blocks_joint.json",
         description="Path to the directory where data will be stored."
     )
     joint_def_path: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/assets/data/joint_def.yaml",
+        default="configs/joint_def.yaml",
         description="Path to the directory where joint definitions will be stored."
     )
     class Config:

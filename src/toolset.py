@@ -474,8 +474,17 @@ if __name__ == "__main__":
     if not p.isConnected():
                 p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
-    img = Image.open("/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/assets/instruction_imgs/octopus.jpg")
-    isometric_image = IsometricImage(object_name="Octopus", image=None)
+    # Sử dụng BASE_PATH để tạo đường dẫn tương đối
+    img_path = os.path.join(BASE_PATH, "assets", "octopus.jpg")
+    
+    # Kiểm tra file có tồn tại không
+    if os.path.exists(img_path):
+        img = Image.open(img_path)
+        isometric_image = IsometricImage(object_name="Octopus", image=img)
+    else:
+        print(f"Image not found at: {img_path}")
+        # Fallback: tạo IsometricImage với image=None
+        isometric_image = IsometricImage(object_name="Octopus", image=None)
     description = isometric_image.describe_object()
     plan = isometric_image.make_plan(description)
     order = isometric_image.order_blocks(plan)
