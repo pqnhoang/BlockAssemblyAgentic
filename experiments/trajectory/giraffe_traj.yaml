@@ -1,0 +1,26 @@
+settings:
+  traj_type: "interp"
+
+config:
+  interp_type: linear
+  subsample_num: 400
+  setpoints:
+    # time, act0_ax0, act0_ax1, act1_ax0, act1_ax1
+    # act0 = head segment (shorter, on top), act1 = neck segment (longer, bottom)
+    # ax0 = X-axis rotation (not used), ax1 = Y-axis rotation (head nodding)
+    # Only head segment moves - neck segment stays straight and stationary
+    main:
+      - [1.0, 0, 0, 0, 0] # Start neutral position
+      - [10.0, 0, 0, 0, 0] # Hold neutral
+      - [20.0, 0, -0.6, 0, -0.3] # Begin gentle head nod - only head moves, neck stays straight
+      - [30.0, 0, -1.2, 0, -0.6] # Deeper head nod - only head moves, neck stays straight
+      - [40.0, 0, -1.6, 0, -0.8] # Maximum head nod - only head moves, neck stays straight
+      - [50.0, 0, -1.2, 0, -0.6] # Start returning - only head moves, neck stays straight
+      - [60.0, 0, -0.6, 0, -0.3] # Continue returning - only head moves, neck stays straight
+      - [70.0, 0, 0, 0, 0] # Return to neutral position
+      - [80.0, 0, 0, 0, 0] # Hold neutral
+      - [90.0, 0, 0, 0, 0] # End neutral
+    prefix:
+      - [0.0, 0, 0, 0, 0]
+    suffix:
+      - [95.0, 0, 0, 0, 0]

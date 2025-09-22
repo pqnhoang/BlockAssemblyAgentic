@@ -1,4 +1,3 @@
-# Temporary __init__.py file to allow imports
-# This file will be removed when the repo is restructured
+# Configuration module for RDM
 
-from .config import BlockMASSettings
+from .config import RDMSettings

@@ -1,0 +1,4 @@
+object_name,instruction_img_path,result_cache_path, trajectory_path
+giraffe,assets/giraffe.jpg,outputs/giraffe, assets/giraffe.yaml
+tree,assets/tree.jpg,outputs/tree,assets/tree.yaml
+octopus,assets/octopus.jpg,outputs/octopus,assets/octopus.yaml

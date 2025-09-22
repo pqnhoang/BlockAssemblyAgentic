@@ -29,9 +29,14 @@
       "shape": "cylinder",
       "number_available": 2
     },
-    "joint-8-small-25x25x25-cuboid": {
-      "dimensions": {"x": 25, "y": 25, "z": 25},
+    "joint-medium-15x15x90-cuboid": {
+      "dimensions": {"x": 15, "y": 15, "z": 15},
       "shape": "joint",
       "number_available": 8
+    },
+    "joint-large-25x25x25-cuboid": {
+      "dimensions": {"x": 25, "y": 25, "z": 25},
+      "shape": "joint",
+      "number_available": 2
     }
   }

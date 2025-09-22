@@ -64,7 +64,7 @@ def run():
 
     finger_startPos = [0, 1, 2.05]
     finger_StartOr = p.getQuaternionFromEuler([-np.pi / 2, 0, np.pi])
-
+  
     finger.load_to_pybullet(
         baseStartPos=finger_startPos,
         baseStartOrn=finger_StartOr,

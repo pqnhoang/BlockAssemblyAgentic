@@ -1,0 +1,76 @@
+# Manipulator Definition: neck with different segments for neck and head
+manipulator_name: "bb_neck"
+urdf_filename: "neck.urdf"
+n_act: 2
+
+# Define the actuators
+actuator_definitions:
+  # Actuator 1 - Neck segment (longer, bottom)
+  - actuator_length: 0.060
+    n_segments: 8
+    planar_flag: 0
+
+    # Define the link sub-unit.
+    link_definition:
+      shape_type: "box"
+      dimensions: [0.025, 0.025, 0.0075]
+      mass: 0.175
+      inertial_values: [1, 0, 0, 1, 0, 1]
+      material_color: [0.8, 0.6, 0.2, 1]
+      material_name: "green"
+
+    # Define the joints connecting the links
+    joint_definitions:
+      # Joint 1: Revolute around X-axis
+      - joint_type: "revolute"
+        axis: [1, 0, 0]
+        limits: [-3.141592, 3.141592, 100, 3]
+        spring_stiffness: 0
+        joint_neutral_position: 0
+        neutral_axis_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        joint_control_limit_force: 1.0
+
+      # Joint 2: Revolute around Y-axis
+      - joint_type: "revolute"
+        axis: [0, 1, 0]
+        limits: [-3.141592, 3.141592, 100, 3]
+        spring_stiffness: 20
+        joint_neutral_position: 0
+        joint_control_limit_force: 1.0
+  # Actuator 0 - Head segment (shorter, on top)
+  - actuator_length: 0.030
+    n_segments: 4
+    planar_flag: 0
+
+    # Define the link sub-unit.
+    link_definition:
+      shape_type: "box"
+      dimensions: [0.025, 0.025, 0.0075]
+      mass: 0.175
+      inertial_values: [1, 0, 0, 1, 0, 1]
+      material_color: [0.8, 0.6, 0.2, 1]
+      material_name: "green"
+
+    # Define the joints connecting the links
+    joint_definitions:
+      # Joint 1: Revolute around X-axis
+      - joint_type: "revolute"
+        axis: [1, 0, 0]
+        limits: [-3.141592, 3.141592, 100, 3]
+        spring_stiffness: 20
+        joint_neutral_position: 0
+        neutral_axis_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        joint_control_limit_force: 1.0
+
+      # Joint 2: Revolute around Y-axis
+      - joint_type: "revolute"
+        axis: [0, 1, 0]
+        limits: [-3.141592, 3.141592, 100, 3]
+        spring_stiffness: 0
+        joint_neutral_position: 0
+        joint_control_limit_force: 1.0
+# Define the base link (None)
+base_definition: ~
+
+# Define the tip link (None)
+tip_definition: ~

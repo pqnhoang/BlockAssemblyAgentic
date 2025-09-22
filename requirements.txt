@@ -11,9 +11,3 @@ ipython==8.0.0
 torch==2.6.0
 torchvision==0.21.
 somo==0.1.0
-# pybullet
-pybullet==3.3.0
-pybullet_data==0.1.0
-pybullet_utils==0.1.0
-pybullet_utils_plus==0.1.0
-pybullet_utils_plus==0.1.0

@@ -6,6 +6,12 @@ src/agent/api_key.txt
 .env.local
 .env.production
 
+# Configuration files (may contain sensitive paths)
+configs/config.yaml
+configs/config.prod.yaml
+configs/config.local.yaml
+configs/config.secret.yaml
+
 # IDE and editor files
 .vscode/
 .idea/
@@ -50,6 +56,8 @@ assets/gpt_caching/
 assets/final_results/
 assets/imgs/
 assets/data/__pycache__/
+exps/
+output_images/
 
 # Temporary files
 *.tmp

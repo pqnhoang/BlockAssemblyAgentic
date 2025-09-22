@@ -1,57 +1,43 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+import yaml
+from pathlib import Path
+from typing import Any
 
-class PathSettings(BaseModel):
-    """
-    Settings for the path configuration.
-    """
-    base_path: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin",
-        description="Base path for the project."
-    )
-    save_dir: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/outputs/gpt_caching",
-        description="Path to the directory where results will be saved."
-    )
-    position_dir: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/results/positions",
-        description="Path to the directory where position results will be saved."
-    )
-    querry_img_path: str = Field(
-        default="/Users/pqnhhh/Documents/GitHub/multi-agent-block-desgin/assets/imgs/block.png",
-        description="Path to the directory where query images will be saved."
-    )
-    data_path: str = Field(
-        default="configs/simulated_blocks_joint.json",
-        description="Path to the directory where data will be stored."
-    )
-    joint_def_path: str = Field(
-        default="configs/joint_def.yaml",
-        description="Path to the directory where joint definitions will be stored."
-    )
-    class Config:
-        env_prefix = "path_"
-        case_sensitive = False
-class LLMSettings(BaseModel):
-    """
-    Settings for the LLM configuration.
-    """
-    model_name: str = Field(
-        default="gpt-3.5-turbo",
-        description="Name of the LLM model to be used."
-    )
-    max_tokens: int = Field(
-        default=4096,
-        description="Maximum number of tokens for the LLM response."
-    )
-    temperature: float = Field(
-        default=0.5,
-        description="Temperature setting for the LLM response."
-    )
-    top_p: float = Field(
-        default=1.0,
-        description="Top-p setting for the LLM response."
-    )
-class BlockMASSettings(BaseModel):
-    path: PathSettings = PathSettings()
-    llm: LLMSettings = LLMSettings()
+class RDMSettings:
+    """Simplified RDM Configuration Loader"""
+    
+    def __init__(self):
+        # Load config.dev.yaml by default
+        config_path = Path(__file__).parent / "config.yaml"
+        
+        try:
+            with open(config_path, 'r', encoding='utf-8') as file:
+                self._config = yaml.safe_load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in config file: {e}")
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get configuration value using dot notation (e.g., 'path.base_path')"""
+        keys = key.split('.')
+        value = self._config
+        
+        try:
+            for k in keys:
+                value = value[k]
+            return value
+        except (KeyError, TypeError):
+            return default
+    
+    @property
+    def path(self):
+        """Path settings accessor"""
+        return self._config.get('path', {})
+    
+    @property
+    def llm(self):
+        """LLM settings accessor"""
+        return self._config.get('llm', {})
+
+# Global settings instance
+settings = RDMSettings()
